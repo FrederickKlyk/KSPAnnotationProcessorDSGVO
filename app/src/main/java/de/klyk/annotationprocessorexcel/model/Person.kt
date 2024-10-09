@@ -3,7 +3,6 @@ package de.klyk.annotationprocessorexcel.model
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
 
 @DsgvoExportExcel(
-    sheetName = "frontend zu backend",
     kategorie = "Bestandskunde",
     verwendungszweck = "Kundenwerbung",
     land = "Deutschland"
