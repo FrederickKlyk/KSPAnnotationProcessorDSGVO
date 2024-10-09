@@ -14,6 +14,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstant
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.LAND
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.VERWENDUNGSZWECK
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
+import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.Sheet
@@ -166,9 +167,11 @@ class DsgvoExportProcessor(
 
     private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoInfoData {
         val annotation = annotations.find { it.shortName.asString() == ANNOTATION_DSGVO_NAME }
+
         return annotation?.arguments?.let { args ->
             DsgvoInfoData(
-                kategorie = args.find { it.name?.asString() == KATEGORIE.lowercase() }?.value as? String ?: "Kunde",
+                kategorie = args.find { it.name?.asString() == KATEGORIE.lowercase() }?.value?.toString()?.substringAfterLast('.')
+                    ?: Kategorie.BESTANDSKUNDE.name,
                 verwendungsZweck = args.find { it.name?.asString() == VERWENDUNGSZWECK.lowercase() }?.value as? String ?: "Datenexport",
                 land = args.find { it.name?.asString() == LAND.lowercase() }?.value as? String ?: "Deutschland"
             )

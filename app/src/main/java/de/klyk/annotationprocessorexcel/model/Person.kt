@@ -1,9 +1,10 @@
 package de.klyk.annotationprocessorexcel.model
 
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
+import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 
 @DsgvoExportExcel(
-    kategorie = "Bestandskunde",
+    kategorie = Kategorie.BESTANDSKUNDE,
     verwendungszweck = "Kundenwerbung",
     land = "Deutschland"
 )
@@ -12,3 +13,4 @@ data class Person(
     val age: Int,
     val email: String
 )
+

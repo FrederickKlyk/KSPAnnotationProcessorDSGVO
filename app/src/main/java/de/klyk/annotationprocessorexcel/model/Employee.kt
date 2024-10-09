@@ -1,9 +1,10 @@
 package de.klyk.annotationprocessorexcel.model
 
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
+import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 
 @DsgvoExportExcel(
-    kategorie = "Mitarbeiter",
+    kategorie = Kategorie.MITARBEITER,
     verwendungszweck = "Mitarbeiterverwaltung",
     land = "Deutschland"
 )
