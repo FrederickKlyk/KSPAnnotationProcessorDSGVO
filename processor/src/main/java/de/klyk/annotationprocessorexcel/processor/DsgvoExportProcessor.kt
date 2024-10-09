@@ -8,7 +8,9 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
+import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
+import org.apache.poi.ss.usermodel.Sheet
 import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
@@ -16,38 +18,59 @@ import java.awt.Color
 import java.io.IOException
 import java.io.OutputStream
 
-
-class ExampleProcessor(
+class DsgvoExportProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
 ) : SymbolProcessor {
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         logger.warn("Processor started!")  // Deutliche Log-Meldung
-        // Sucht nach allen Klassen, die mit @ExampleAnnotation annotiert sind
         val symbols = resolver.getSymbolsWithAnnotation(DsgvoExportExcel::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
 
-        // Logge die gefundenen Klassen
-        symbols.forEach { classDeclaration ->
-            logger.warn("Found class: ${classDeclaration.simpleName.asString()}")
+        if (symbols.any()) {
+            createExcelExport(symbols)
         }
-
-        // Erstellen und Schreiben der Datei
-        createExcel(symbols)
-        createKotlinFile()
 
         logger.warn("Processor finished!")  // Deutliche Log-Meldung
         return emptyList()
     }
 
+    private fun createExcelExport(symbols: Sequence<KSClassDeclaration>) {
+        val workbook: Workbook = XSSFWorkbook()
+        val sheet = workbook.createSheet("DsgvoExport")
+        val cellStyle = cellStyleBackground(workbook)
 
-    private fun createExcel(symbols: Sequence<KSClassDeclaration>) {
+        extractDsgvoData(symbols, sheet, cellStyle)
+        writeExcelExport(workbook)
+    }
+
+    private fun writeExcelExport(workbook: Workbook) {
+        try {
+            logger.warn("Writing to Excel file...")
+            val file: OutputStream = codeGenerator.createNewFile(
+                Dependencies(false),
+                "de.klyk.annotationprocessorexcel.generated",
+                "DsgvoReportFrontend",
+                "xlsx"
+            )
+            workbook.write(file)
+            file.close()
+            workbook.close()
+        } catch (e: IOException) {
+            logger.warn("Error writing to Excel file: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    private fun extractDsgvoData(
+        symbols: Sequence<KSClassDeclaration>,
+        sheet: Sheet,
+        cellStyle: CellStyle?
+    ) {
+        var rowIndex = 0
         symbols.forEach { classDeclaration ->
             val annotation = classDeclaration.annotations.find { it.shortName.asString() == "DsgvoExportExcel" }
-            val fileName = "DsgvoReportFrontend"
-
-            // Get annotation values von dem Annotation-Objekt
             val dsgvoInfoData = annotation?.arguments.let { args ->
                 val sheetName = args?.find { it.name?.asString() == "sheetName" }?.value as? String ?: "frontend_backup"
                 val kategorie = args?.find { it.name?.asString() == "kategorie" }?.value as? String ?: "Kunde"
@@ -56,15 +79,6 @@ class ExampleProcessor(
                 DsgvoInfoData(sheetName, kategorie, verwendungszweck, land)
             }
 
-            val workbook: Workbook = XSSFWorkbook()
-            val sheet = workbook.createSheet(dsgvoInfoData.sheetName)
-
-            // Create a cell style with light blue background
-            val cellStyle = workbook.createCellStyle()
-            val lightBlue = XSSFColor(Color(173, 216, 230), null)
-            cellStyle.setFillForegroundColor(lightBlue)
-            cellStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
-            var rowIndex = 0
             val className = classDeclaration.simpleName.asString()
             val row = sheet.createRow(rowIndex++)
             val classNameCell = row.createCell(0)
@@ -98,55 +112,23 @@ class ExampleProcessor(
             landCell.cellStyle = cellStyle
             landRow.createCell(1).setCellValue(dsgvoInfoData.land)
 
+            // Add an empty row
+            rowIndex++
+
             // Auto-size columns
             for (i in 0..1) {
                 sheet.autoSizeColumn(i)
             }
-
-            try {
-                logger.warn("Writing to Excel file...")
-                val file: OutputStream = codeGenerator.createNewFile(
-                    Dependencies(false),
-                    "de.klyk.annotationprocessorexcel.generated",
-                    fileName,
-                    "xlsx"
-                )
-                workbook.write(file)
-                file.close()
-                workbook.close()
-            } catch (e: IOException) {
-                logger.warn("Error writing to Excel file: ${e.message}")
-                e.printStackTrace()
-            }
         }
     }
 
-    private fun createKotlinFile() {
-        // Erstellen und Schreiben der Datei
-        val fileName = "HelloWorld"
-        val packageName = "de.klyk.annotationprocessorexcel.generated"
-
-        val fileContent = """
-                package $packageName
-    
-                fun main() {
-                    println("Hello World")
-                }
-            """.trimIndent()
-        try {
-            logger.warn("Writing to file...")
-            val file: OutputStream = codeGenerator.createNewFile(
-                Dependencies(false),
-                packageName,
-                fileName,
-                "kt"
-            )
-
-            file.write(fileContent.toByteArray())
-            file.close()
-        } catch (e: IOException) {
-            logger.warn("Error writing to file: ${e.message}")
-        }
+    private fun cellStyleBackground(workbook: Workbook): CellStyle? {
+        // Create a cell style with light blue background
+        val cellStyle = workbook.createCellStyle()
+        val lightBlue = XSSFColor(Color(173, 216, 230), null)
+        cellStyle.setFillForegroundColor(lightBlue)
+        cellStyle.fillPattern = FillPatternType.SOLID_FOREGROUND
+        return cellStyle
     }
 }
 

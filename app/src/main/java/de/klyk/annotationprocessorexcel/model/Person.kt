@@ -1,4 +1,4 @@
-package de.klyk.annotationprocessorexcel
+package de.klyk.annotationprocessorexcel.model
 
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
 
