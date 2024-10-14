@@ -1,6 +1,7 @@
 package de.klyk.annotationprocessorexcel.model
 
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
+import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
 import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 
@@ -12,6 +13,9 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 data class Person(
     val name: String,
     val age: Int,
-    val email: String
+    val email: String,
+    @ExcludeFromDsgvoExport
+    val irrelevantInfo: String,
+    val relevanteInfo: String
 )
 

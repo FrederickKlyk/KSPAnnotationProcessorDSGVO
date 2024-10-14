@@ -7,7 +7,10 @@ import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSPropertyDeclaration
+import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.ANNOTATION_DSGVO_NAME
+import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.ANNOTATION_EXCLUDE_FROM_DSGVO_NAME
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.DATENKLASSE_NAME
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.DATENKLASSE_PROPERTY
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.KATEGORIE
@@ -133,7 +136,7 @@ class DsgvoExportProcessor(
                 createCell(1).setCellValue(className)
             }
 
-            classDeclaration.getAllProperties().forEach { property ->
+            classDeclaration.getAllPropertiesExcluding().forEach { property ->
                 sheet.createRow(rowIndex++).apply {
                     createCell(0).also { cell ->
                         cell.setCellValue(DATENKLASSE_PROPERTY)
@@ -184,6 +187,12 @@ class DsgvoExportProcessor(
                 land = args.find { it.name?.asString() == LAND.lowercase() }?.value as? String ?: "Deutschland"
             )
         } ?: DsgvoInfoData()
+    }
+
+    private fun KSClassDeclaration.getAllPropertiesExcluding(): Sequence<KSPropertyDeclaration> {
+        return getAllProperties().filter { property ->
+            !property.annotations.any { it.shortName.asString() == ANNOTATION_EXCLUDE_FROM_DSGVO_NAME }
+        }
     }
 }
 

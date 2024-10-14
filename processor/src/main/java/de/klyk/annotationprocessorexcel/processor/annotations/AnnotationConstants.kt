@@ -8,4 +8,5 @@ object AnnotationConstants {
     const val LAND = "Land"
     const val NAME = "Name"
     const val ANNOTATION_DSGVO_NAME = "DsgvoExportExcel"
+    const val ANNOTATION_EXCLUDE_FROM_DSGVO_NAME = "ExcludeFromDsgvoExport"
 }
