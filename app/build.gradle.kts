@@ -45,10 +45,6 @@ android {
             }
         }
     }
-    // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunProcessor=true
-    ksp {
-        arg("runProcessor", providers.gradleProperty("runProcessor").orElse("false"))
-    }
 }
 
 dependencies {

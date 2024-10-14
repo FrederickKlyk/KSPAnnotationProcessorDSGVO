@@ -29,17 +29,9 @@ import java.io.PrintWriter
 class DsgvoExportProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
-    options: Map<String, String>,
 ) : SymbolProcessor {
 
-    private var shouldRun: Boolean = options["runProcessor"]?.toBoolean() ?: false
-
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (!shouldRun){
-            logger.warn("shouldRun= $shouldRun, Processor wird vorzeitig ohne Durchlauf beendet!")
-            return emptyList()
-        }
-
         logger.warn("Processor started!")
         val symbols = resolver.getSymbolsWithAnnotation(DsgvoExportExcel::class.qualifiedName!!)
             .filterIsInstance<KSClassDeclaration>()
