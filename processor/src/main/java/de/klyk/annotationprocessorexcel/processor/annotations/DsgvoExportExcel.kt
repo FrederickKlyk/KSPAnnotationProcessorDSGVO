@@ -5,7 +5,7 @@ package de.klyk.annotationprocessorexcel.processor.annotations
 annotation class DsgvoExportExcel(
     val kategorie: Array<Kategorie>,
     val verwendungszweck: Array<Verwendungszweck>,
-    val laender: String
+    val land: String
 )
 
 enum class Kategorie {

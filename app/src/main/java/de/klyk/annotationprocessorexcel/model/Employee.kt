@@ -7,7 +7,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 @DsgvoExportExcel(
     kategorie = [Kategorie.MITARBEITER],
     verwendungszweck = [Verwendungszweck.KUNDENBINDUNG],
-    laender = "Deutschland"
+    land = "Deutschland"
 )
 data class Employee(
     val name: String,
