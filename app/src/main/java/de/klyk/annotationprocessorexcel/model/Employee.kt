@@ -5,8 +5,8 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 
 @DsgvoExportExcel(
-    kategorie = Kategorie.MITARBEITER,
-    verwendungszweck = Verwendungszweck.KUNDENBINDUNG,
+    kategorie = [Kategorie.MITARBEITER],
+    verwendungszweck = [Verwendungszweck.KUNDENBINDUNG],
     laender = "Deutschland"
 )
 data class Employee(

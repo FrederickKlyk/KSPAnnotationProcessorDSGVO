@@ -8,7 +8,6 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
-import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.ANNOTATION_DSGVO_NAME
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.ANNOTATION_EXCLUDE_FROM_DSGVO_NAME
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.DATENKLASSE_NAME
@@ -17,7 +16,6 @@ import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstant
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.LAND
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants.VERWENDUNGSZWECK
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
-import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.Sheet
@@ -38,7 +36,7 @@ class DsgvoExportProcessor(
     private var shouldRun: Boolean = options["runProcessor"]?.toBoolean() ?: false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (!shouldRun){
+        if (!shouldRun) {
             logger.warn("shouldRun= $shouldRun, Processor wird vorzeitig ohne Durchlauf beendet!")
             return emptyList()
         }
@@ -146,20 +144,24 @@ class DsgvoExportProcessor(
                 }
             }
 
-            sheet.createRow(rowIndex++).apply {
-                createCell(0).also { cell ->
-                    cell.setCellValue(KATEGORIE)
-                    cell.cellStyle = cellStyle
+            dsgvoInfoData.kategorie.forEach { kategorie ->
+                sheet.createRow(rowIndex++).apply {
+                    createCell(0).also { cell ->
+                        cell.setCellValue(KATEGORIE)
+                        cell.cellStyle = cellStyle
+                    }
+                    createCell(1).setCellValue(kategorie)
                 }
-                createCell(1).setCellValue(dsgvoInfoData.kategorie)
             }
 
-            sheet.createRow(rowIndex++).apply {
-                createCell(0).also { cell ->
-                    cell.setCellValue(VERWENDUNGSZWECK)
-                    cell.cellStyle = cellStyle
+            dsgvoInfoData.verwendungsZweck.forEach { verwendungszweck ->
+                sheet.createRow(rowIndex++).apply {
+                    createCell(0).also { cell ->
+                        cell.setCellValue(VERWENDUNGSZWECK)
+                        cell.cellStyle = cellStyle
+                    }
+                    createCell(1).setCellValue(verwendungszweck)
                 }
-                createCell(1).setCellValue(dsgvoInfoData.verwendungsZweck)
             }
 
             sheet.createRow(rowIndex++).apply {
@@ -181,9 +183,13 @@ class DsgvoExportProcessor(
 
         return annotation?.arguments?.let { args ->
             DsgvoInfoData(
-                kategorie = args.find { it.name?.asString() == KATEGORIE.lowercase() }?.value?.toString()?.substringAfterLast('.')
-                    ?: Kategorie.BESTANDSKUNDE.name,
-                verwendungsZweck = args.find { it.name?.asString() == VERWENDUNGSZWECK.lowercase() }?.value as? String ?: "Datenexport",
+                kategorie = (args.find { it.name?.asString() == KATEGORIE.lowercase() }?.value as? List<*>)?.map {
+                    it.toString().substringAfterLast('.')
+                } ?: emptyList(),
+                verwendungsZweck = (args.find { it.name?.asString() == VERWENDUNGSZWECK.lowercase() }?.value as? List<*>)?.map {
+                    it.toString().substringAfterLast('.')
+                }
+                    ?: emptyList(),
                 land = args.find { it.name?.asString() == LAND.lowercase() }?.value as? String ?: "Deutschland"
             )
         } ?: DsgvoInfoData()
@@ -197,7 +203,7 @@ class DsgvoExportProcessor(
 }
 
 data class DsgvoInfoData(
-    var kategorie: String = "",
-    var verwendungsZweck: String = "",
+    var kategorie: List<String> = emptyList(),
+    var verwendungsZweck: List<String> = emptyList(),
     var land: String = ""
 )

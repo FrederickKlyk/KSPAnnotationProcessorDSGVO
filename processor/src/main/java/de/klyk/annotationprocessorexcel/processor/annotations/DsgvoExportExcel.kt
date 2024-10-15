@@ -3,8 +3,8 @@ package de.klyk.annotationprocessorexcel.processor.annotations
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
 annotation class DsgvoExportExcel(
-    val kategorie: Kategorie,
-    val verwendungszweck: Verwendungszweck,
+    val kategorie: Array<Kategorie>,
+    val verwendungszweck: Array<Verwendungszweck>,
     val laender: String
 )
 
