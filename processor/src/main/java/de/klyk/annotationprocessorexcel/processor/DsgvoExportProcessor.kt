@@ -1,18 +1,27 @@
 package de.klyk.annotationprocessorexcel.processor
 
-import com.google.devtools.ksp.processing.*
-import com.google.devtools.ksp.symbol.*
+import com.google.devtools.ksp.processing.CodeGenerator
+import com.google.devtools.ksp.processing.Dependencies
+import com.google.devtools.ksp.processing.KSPLogger
+import com.google.devtools.ksp.processing.Resolver
+import com.google.devtools.ksp.processing.SymbolProcessor
+import com.google.devtools.ksp.symbol.KSAnnotated
+import com.google.devtools.ksp.symbol.KSClassDeclaration
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
 import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
 import de.klyk.annotationprocessorexcel.processor.visitor.ExcelRow
-import org.apache.poi.ss.usermodel.*
+import org.apache.poi.ss.usermodel.CellStyle
+import org.apache.poi.ss.usermodel.FillPatternType
+import org.apache.poi.ss.usermodel.Sheet
+import org.apache.poi.ss.usermodel.Workbook
 import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.awt.Color
 import java.io.IOException
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
+import kotlin.reflect.KClass
 
 class DsgvoExportProcessor(
     private val codeGenerator: CodeGenerator,
@@ -29,9 +38,8 @@ class DsgvoExportProcessor(
         }
 
         logger.warn("Processor started!")
-        val symbols = resolver.getSymbolsWithAnnotation(DsgvoExportExcel::class.qualifiedName!!)
-            .filterIsInstance<KSClassDeclaration>()
-        if(!symbols.any()) {
+        val symbols = resolver.findAnnotations(DsgvoExportExcel::class)
+        if (!symbols.any()) {
             logger.warn("No classes with DsgvoExportExcel annotation found!")
             return emptyList()
         }
@@ -64,6 +72,9 @@ class DsgvoExportProcessor(
             e.printStackTrace()
         }
     }
+
+    private fun Resolver.findAnnotations(kClass: KClass<*>) =
+        getSymbolsWithAnnotation(kClass.qualifiedName.toString()).filterIsInstance<KSClassDeclaration>()
 
     private fun createExcelExport(excelData: List<ExcelRow>) {
         val workbook: Workbook = XSSFWorkbook()

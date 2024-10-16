@@ -21,6 +21,12 @@ class DsgvoExportVisitor : KSVisitorVoid() {
         }
     }
 
+    override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
+        property.annotations.find { it.shortName.asString() == ANNOTATION_EXCLUDE_FROM_DSGVO_NAME }?.let {
+            processExcludeFromDsgvoExport(property, it)
+        }
+    }
+
     private fun processDsgvoExport(classDeclaration: KSClassDeclaration, annotation: KSAnnotation) {
         val dsgvoInfoData = classDeclaration.getDsgvoInfoData()
         val className = classDeclaration.simpleName.asString()
@@ -38,19 +44,13 @@ class DsgvoExportVisitor : KSVisitorVoid() {
         excelData.add(ExcelRow(className, dsgvoInfoData, properties))
     }
 
-    override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
-        property.annotations.find { it.shortName.asString() == ANNOTATION_EXCLUDE_FROM_DSGVO_NAME }?.let {
-            processExcludeFromDsgvoExport(property, it)
-        }
-    }
+    fun getCsvData(): String = csvData.toString()
+
+    fun getExcelData(): List<ExcelRow> = excelData
 
     private fun processExcludeFromDsgvoExport(property: KSPropertyDeclaration, annotation: KSAnnotation) {
         excludedProperties.add(property.simpleName.asString())
     }
-
-    fun getCsvData(): String = csvData.toString()
-
-    fun getExcelData(): List<ExcelRow> = excelData
 
     private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoInfoData {
         val annotation = annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_NAME }
