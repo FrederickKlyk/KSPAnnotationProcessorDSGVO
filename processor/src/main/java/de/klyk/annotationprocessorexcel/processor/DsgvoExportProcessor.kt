@@ -8,7 +8,7 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoExportExcel
+import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
 import de.klyk.annotationprocessorexcel.processor.visitor.ExcelRow
 import org.apache.poi.ss.usermodel.CellStyle
@@ -19,14 +19,12 @@ import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.awt.Color
 import java.io.IOException
-import java.io.OutputStreamWriter
-import java.io.PrintWriter
 import kotlin.reflect.KClass
 
 class DsgvoExportProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
-    options: Map<String, String>,
+    options: Map<String, String>
 ) : SymbolProcessor {
 
     private val shouldRun: Boolean = options["runProcessor"]?.toBoolean() ?: false
@@ -38,13 +36,14 @@ class DsgvoExportProcessor(
         }
 
         logger.warn("Processor started!")
-        val symbols = resolver.findAnnotations(DsgvoExportExcel::class)
-        if (!symbols.any()) {
+        val symbols = resolver.findAnnotations(DsgvoClass::class)
+
+        if (symbols.none()) {
             logger.warn("No classes with DsgvoExportExcel annotation found!")
             return emptyList()
         }
-        val visitor = DsgvoExportVisitor()
 
+        val visitor = DsgvoExportVisitor(logger)
         symbols.forEach { it.accept(visitor, Unit) }
 
         writeCsvExport(visitor.getCsvData())
@@ -54,18 +53,22 @@ class DsgvoExportProcessor(
         return emptyList()
     }
 
+    private fun Resolver.findAnnotations(kClass: KClass<*>) =
+        getSymbolsWithAnnotation(kClass.qualifiedName.toString()).filterIsInstance<KSClassDeclaration>()
+
     private fun writeCsvExport(csvData: String) {
         try {
             logger.warn("Writing to CSV file...")
-            codeGenerator.createNewFile(
+            val filePath = "de/klyk/annotationprocessorexcel/generated/${AnnotationConstants.DSGVO_FILE_NAME}.csv"
+            val file = codeGenerator.createNewFile(
                 Dependencies(false),
                 "de.klyk.annotationprocessorexcel.generated",
-                "DsgvoReportFrontend",
+                AnnotationConstants.DSGVO_FILE_NAME,
                 "csv"
-            ).use { file ->
-                PrintWriter(OutputStreamWriter(file, "UTF-8")).use { writer ->
-                    writer.write(csvData)
-                }
+            )
+
+            file.bufferedWriter(Charsets.UTF_8).use { writer ->
+                writer.write(csvData)
             }
         } catch (e: IOException) {
             logger.warn("Error writing to CSV file: ${e.message}")
@@ -73,10 +76,9 @@ class DsgvoExportProcessor(
         }
     }
 
-    private fun Resolver.findAnnotations(kClass: KClass<*>) =
-        getSymbolsWithAnnotation(kClass.qualifiedName.toString()).filterIsInstance<KSClassDeclaration>()
-
     private fun createExcelExport(excelData: List<ExcelRow>) {
+
+        logger.warn("Creating Excel export...$excelData")
         val workbook: Workbook = XSSFWorkbook()
         val sheet = workbook.createSheet("FrontendDsgvoReport")
         val cellStyle = workbook.createCellStyle().apply {
@@ -91,14 +93,14 @@ class DsgvoExportProcessor(
     private fun writeExcelExport(workbook: Workbook) {
         try {
             logger.warn("Writing to Excel file...")
-            codeGenerator.createNewFile(
+            val file = codeGenerator.createNewFile(
                 Dependencies(false),
                 "de.klyk.annotationprocessorexcel.generated",
-                "DsgvoReportFrontend",
+                AnnotationConstants.DSGVO_FILE_NAME,
                 "xlsx"
-            ).use { file ->
-                workbook.use { it.write(file) }
-            }
+            )
+
+            file.use { workbook.write(it) }
         } catch (e: IOException) {
             logger.warn("Error writing to Excel file: ${e.message}")
             e.printStackTrace()
@@ -111,59 +113,74 @@ class DsgvoExportProcessor(
         cellStyle: CellStyle
     ) {
         var rowIndex = 0
+
+        // Create header row
+        val headerRow = sheet.createRow(rowIndex++)
+        val headers = listOf(
+            AnnotationConstants.DATENKLASSE_NAME,
+            AnnotationConstants.KATEGORIE,
+            AnnotationConstants.VERWENDUNGSZWECK,
+            AnnotationConstants.LAND,
+            AnnotationConstants.DOMAENE,
+            AnnotationConstants.SYSTEM,
+            AnnotationConstants.PERSONENBEZOGENE_DATEN,
+            AnnotationConstants.QUELLEN,
+            AnnotationConstants.KATEGORIE_VON_EMPFAENGERN,
+            AnnotationConstants.DRITTLAND,
+            AnnotationConstants.BEMERKUNGEN,
+            AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN
+        )
+
+        headers.forEachIndexed { index, header ->
+            headerRow.createCell(index).apply {
+                setCellValue(header)
+                this.cellStyle = cellStyle
+            }
+        }
+
+        // Create data rows
         excelData.forEach { row ->
             val className = row.className
             val dsgvoInfoData = row.dsgvoInfoData
 
-            sheet.createRow(rowIndex++).apply {
-                createCell(0).apply {
-                    setCellValue(AnnotationConstants.DATENKLASSE_NAME)
-                    this.cellStyle = cellStyle
-                }
-                createCell(1).setCellValue(className)
+            // Handle DsgvoClass verwendungszweck
+            dsgvoInfoData.verwendungszweck.forEach { verwendungszweck ->
+                val dataRow = sheet.createRow(rowIndex++)
+                dataRow.createCell(0).setCellValue(className)
+                dataRow.createCell(1).setCellValue(dsgvoInfoData.kategorie.joinToString("; "))
+                dataRow.createCell(2).setCellValue(verwendungszweck)
+                dataRow.createCell(3).setCellValue(dsgvoInfoData.land)
+                dataRow.createCell(4).setCellValue(dsgvoInfoData.domaene)
+                dataRow.createCell(5).setCellValue(dsgvoInfoData.system)
+                dataRow.createCell(6).setCellValue(dsgvoInfoData.personenbezogeneDaten)
+                dataRow.createCell(7).setCellValue(dsgvoInfoData.quellen)
+                dataRow.createCell(8).setCellValue(dsgvoInfoData.kategorieVonEmpfaengern.joinToString("; "))
+                dataRow.createCell(9).setCellValue(dsgvoInfoData.drittland.toString())
+                dataRow.createCell(10).setCellValue(dsgvoInfoData.bemerkungen)
+                dataRow.createCell(11).setCellValue(dsgvoInfoData.optionaleTechnischeInformationen)
             }
 
-            dsgvoInfoData.kategorie.forEach { kategorie ->
-                sheet.createRow(rowIndex++).apply {
-                    createCell(0).apply {
-                        setCellValue(AnnotationConstants.KATEGORIE)
-                        this.cellStyle = cellStyle
-                    }
-                    createCell(1).setCellValue(kategorie)
-                }
-            }
-
-            dsgvoInfoData.verwendungsZweck.forEach { verwendungszweck ->
-                sheet.createRow(rowIndex++).apply {
-                    createCell(0).apply {
-                        setCellValue(AnnotationConstants.VERWENDUNGSZWECK)
-                        this.cellStyle = cellStyle
-                    }
-                    createCell(1).setCellValue(verwendungszweck)
-                }
-            }
-
-            sheet.createRow(rowIndex++).apply {
-                createCell(0).apply {
-                    setCellValue(AnnotationConstants.LAND)
-                    this.cellStyle = cellStyle
-                }
-                createCell(1).setCellValue(dsgvoInfoData.land)
-            }
-
+            // Handle DsgvoProperty verwendungszweck
             row.properties.forEach { property ->
-                sheet.createRow(rowIndex++).apply {
-                    createCell(0).apply {
-                        setCellValue(AnnotationConstants.DATENKLASSE_PROPERTY)
-                        this.cellStyle = cellStyle
-                    }
-                    createCell(1).setCellValue(property)
+                property.verwendungszweck.forEach { verwendungszweck ->
+                    val dataRow = sheet.createRow(rowIndex++)
+                    dataRow.createCell(0).setCellValue(className)
+                    dataRow.createCell(1).setCellValue(dsgvoInfoData.kategorie.joinToString("; "))
+                    dataRow.createCell(2).setCellValue("$verwendungszweck (${property.name})")
+                    dataRow.createCell(3).setCellValue(dsgvoInfoData.land)
+                    dataRow.createCell(4).setCellValue(dsgvoInfoData.domaene)
+                    dataRow.createCell(5).setCellValue(dsgvoInfoData.system)
+                    dataRow.createCell(6).setCellValue(dsgvoInfoData.personenbezogeneDaten)
+                    dataRow.createCell(7).setCellValue(dsgvoInfoData.quellen)
+                    dataRow.createCell(8).setCellValue(dsgvoInfoData.kategorieVonEmpfaengern.joinToString("; "))
+                    dataRow.createCell(9).setCellValue(dsgvoInfoData.drittland.toString())
+                    dataRow.createCell(10).setCellValue(dsgvoInfoData.bemerkungen)
+                    dataRow.createCell(11).setCellValue(dsgvoInfoData.optionaleTechnischeInformationen)
                 }
             }
-
-            rowIndex++ // Add an empty row
-
-            (0..1).forEach { sheet.autoSizeColumn(it) }
         }
+
+        // Auto-size columns
+        (0..11).forEach { sheet.autoSizeColumn(it) }
     }
 }
