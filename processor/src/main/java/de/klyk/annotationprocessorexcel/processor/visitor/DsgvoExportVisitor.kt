@@ -61,18 +61,18 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
 
         val combinedPersonenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" + getAllProperties()
             .filter { it.simpleName.asString() !in excludedProperties }
-            .joinToString(", ") { it.simpleName.asString() } + ")"
+            .joinToString(". ") { it.simpleName.asString() } + ")"
 
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
             csvData.append(className).append(", ")
-                .append("(${dsgvoInfoData.kategorie.joinToString(", ")})").append(", ")
+                .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
                 .append(verwendungsZweck).append(", ")
                 .append(dsgvoInfoData.land).append(", ")
                 .append(dsgvoInfoData.domaene).append(", ")
                 .append(dsgvoInfoData.system).append(", ")
                 .append(combinedPersonenbezogeneDaten).append(", ")
                 .append(dsgvoInfoData.quellen).append(", ")
-                .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(", ")})").append(", ")
+                .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
                 .append(dsgvoInfoData.drittland).append(", ")
                 .append(dsgvoInfoData.bemerkungen).append(", ")
                 .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
@@ -81,14 +81,14 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         dsgvoPropertiesFromAnnotation.forEach { property ->
             property.verwendungszweck.forEach { verwendungsZweck ->
                 csvData.append(className).append(", ")
-                    .append("(${dsgvoInfoData.kategorie.joinToString(", ")})").append(", ")
+                    .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
                     .append("$verwendungsZweck (${property.name})").append(", ")
                     .append(dsgvoInfoData.land).append(", ")
                     .append(dsgvoInfoData.domaene).append(", ")
                     .append(dsgvoInfoData.system).append(", ")
                     .append(combinedPersonenbezogeneDaten).append(", ")
                     .append(dsgvoInfoData.quellen).append(", ")
-                    .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(", ")})").append(", ")
+                    .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
                     .append(dsgvoInfoData.drittland).append(", ")
                     .append(dsgvoInfoData.bemerkungen).append(", ")
                     .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")

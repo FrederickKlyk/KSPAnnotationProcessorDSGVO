@@ -42,6 +42,7 @@ class DsgvoExportProcessor(
             return emptyList()
         }
 
+        // Visit all classes and delegate in first step visit properties
         val visitor = DsgvoExportVisitor(logger)
         symbols.forEach { classDeclaration ->
             classDeclaration.accept(visitor, Unit)
