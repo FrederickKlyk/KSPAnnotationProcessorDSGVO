@@ -43,7 +43,9 @@ class DsgvoExportProcessor(
         }
 
         val visitor = DsgvoExportVisitor(logger)
-        symbols.forEach { it.accept(visitor, Unit) }
+        symbols.forEach { classDeclaration ->
+            classDeclaration.accept(visitor, Unit)
+        }
 
         writeCsvExport(visitor.getCsvData())
         createExcelExport(visitor.getExcelData())
@@ -146,14 +148,14 @@ class DsgvoExportProcessor(
                 property.verwendungszweck.forEach { verwendungszweck ->
                     val dataRow = sheet.createRow(rowIndex++)
                     dataRow.createCell(0).setCellValue(className)
-                    dataRow.createCell(1).setCellValue(dsgvoInfoData.kategorie.joinToString("; "))
+                    dataRow.createCell(1).setCellValue(dsgvoInfoData.kategorie.joinToString(", "))
                     dataRow.createCell(2).setCellValue("$verwendungszweck (${property.name})")
                     dataRow.createCell(3).setCellValue(dsgvoInfoData.land)
                     dataRow.createCell(4).setCellValue(dsgvoInfoData.domaene)
                     dataRow.createCell(5).setCellValue(dsgvoInfoData.system)
                     dataRow.createCell(6).setCellValue(dsgvoInfoData.personenbezogeneDaten)
                     dataRow.createCell(7).setCellValue(dsgvoInfoData.quellen)
-                    dataRow.createCell(8).setCellValue(dsgvoInfoData.kategorieVonEmpfaengern.joinToString("; "))
+                    dataRow.createCell(8).setCellValue(dsgvoInfoData.kategorieVonEmpfaengern.joinToString(", "))
                     dataRow.createCell(9).setCellValue(dsgvoInfoData.drittland.toString())
                     dataRow.createCell(10).setCellValue(dsgvoInfoData.bemerkungen)
                     dataRow.createCell(11).setCellValue(dsgvoInfoData.optionaleTechnischeInformationen)
@@ -169,7 +171,9 @@ class DsgvoExportProcessor(
         try {
             logger.warn("Writing to Excel file...")
             val file = codeGenerator.createNewFile(
-                Dependencies(false),
+                Dependencies(
+                    false,
+                ),
                 "de.klyk.annotationprocessorexcel.generated",
                 AnnotationConstants.DSGVO_FILE_NAME,
                 "xlsx"

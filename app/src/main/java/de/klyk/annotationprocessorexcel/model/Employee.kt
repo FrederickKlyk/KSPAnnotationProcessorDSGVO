@@ -9,7 +9,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
 
 @DsgvoClass(
-    kategorie = [Kategorie.MITARBEITER],
+    kategorie = [Kategorie.MITARBEITER, Kategorie.BESTANDSKUNDE],
     verwendungszweck = [Verwendungszweck.KUNDENBINDUNG],
     domaene = Domaene.FINANZEN,
     system = SystemCluster.FRONTEND,

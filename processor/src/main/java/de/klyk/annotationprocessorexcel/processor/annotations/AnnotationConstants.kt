@@ -17,5 +17,5 @@ object AnnotationConstants {
     const val DRITTLAND = "drittland"
     const val BEMERKUNGEN = "bemerkungen"
     const val OPTIONALE_TECHNISCHE_INFORMATIONEN = "optionaleTechnischeInformationen"
-    const val DSGVO_FILE_NAME = "DSGVO_Report_Frontend3"
+    const val DSGVO_FILE_NAME = "DSGVO_Report_Frontend"
 }

@@ -17,7 +17,9 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     // Visit all classes and delegate first properties
     override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
         // First process all properties of the class
-        classDeclaration.getAllProperties().forEach { it.accept(this, Unit) }
+        classDeclaration.getAllProperties().forEach { propertyDeclaration ->
+            propertyDeclaration.accept(this, Unit)
+        }
 
         // Then process the class for export
         classDeclaration.annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_CLASS_NAME }?.let {
@@ -63,14 +65,14 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
 
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
             csvData.append(className).append(", ")
-                .append(dsgvoInfoData.kategorie.joinToString("; ")).append(", ")
+                .append("(${dsgvoInfoData.kategorie.joinToString(", ")})").append(", ")
                 .append(verwendungsZweck).append(", ")
                 .append(dsgvoInfoData.land).append(", ")
                 .append(dsgvoInfoData.domaene).append(", ")
                 .append(dsgvoInfoData.system).append(", ")
                 .append(combinedPersonenbezogeneDaten).append(", ")
                 .append(dsgvoInfoData.quellen).append(", ")
-                .append(dsgvoInfoData.kategorieVonEmpfaengern.joinToString("; ")).append(", ")
+                .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(", ")})").append(", ")
                 .append(dsgvoInfoData.drittland).append(", ")
                 .append(dsgvoInfoData.bemerkungen).append(", ")
                 .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
@@ -79,14 +81,14 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         dsgvoPropertiesFromAnnotation.forEach { property ->
             property.verwendungszweck.forEach { verwendungsZweck ->
                 csvData.append(className).append(", ")
-                    .append(dsgvoInfoData.kategorie.joinToString("; ")).append(", ")
+                    .append("(${dsgvoInfoData.kategorie.joinToString(", ")})").append(", ")
                     .append("$verwendungsZweck (${property.name})").append(", ")
                     .append(dsgvoInfoData.land).append(", ")
                     .append(dsgvoInfoData.domaene).append(", ")
                     .append(dsgvoInfoData.system).append(", ")
                     .append(combinedPersonenbezogeneDaten).append(", ")
                     .append(dsgvoInfoData.quellen).append(", ")
-                    .append(dsgvoInfoData.kategorieVonEmpfaengern.joinToString("; ")).append(", ")
+                    .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(", ")})").append(", ")
                     .append(dsgvoInfoData.drittland).append(", ")
                     .append(dsgvoInfoData.bemerkungen).append(", ")
                     .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
