@@ -37,7 +37,6 @@ class DsgvoExportProcessor(
 
         logger.warn("Processor started!")
         val symbols = resolver.findAnnotations(DsgvoClass::class)
-
         if (symbols.none()) {
             logger.warn("No classes with DsgvoExportExcel annotation found!")
             return emptyList()
@@ -59,16 +58,15 @@ class DsgvoExportProcessor(
     private fun writeCsvExport(csvData: String) {
         try {
             logger.warn("Writing to CSV file...")
-            val filePath = "de/klyk/annotationprocessorexcel/generated/${AnnotationConstants.DSGVO_FILE_NAME}.csv"
-            val file = codeGenerator.createNewFile(
+            codeGenerator.createNewFile(
                 Dependencies(false),
                 "de.klyk.annotationprocessorexcel.generated",
                 AnnotationConstants.DSGVO_FILE_NAME,
                 "csv"
-            )
-
-            file.bufferedWriter(Charsets.UTF_8).use { writer ->
-                writer.write(csvData)
+            ).apply {
+                bufferedWriter(Charsets.UTF_8).use { writer ->
+                    writer.write(csvData)
+                }
             }
         } catch (e: IOException) {
             logger.warn("Error writing to CSV file: ${e.message}")
@@ -88,23 +86,6 @@ class DsgvoExportProcessor(
 
         extractDsgvoData(excelData, sheet, cellStyle)
         writeExcelExport(workbook)
-    }
-
-    private fun writeExcelExport(workbook: Workbook) {
-        try {
-            logger.warn("Writing to Excel file...")
-            val file = codeGenerator.createNewFile(
-                Dependencies(false),
-                "de.klyk.annotationprocessorexcel.generated",
-                AnnotationConstants.DSGVO_FILE_NAME,
-                "xlsx"
-            )
-
-            file.use { workbook.write(it) }
-        } catch (e: IOException) {
-            logger.warn("Error writing to Excel file: ${e.message}")
-            e.printStackTrace()
-        }
     }
 
     private fun extractDsgvoData(
@@ -182,5 +163,22 @@ class DsgvoExportProcessor(
 
         // Auto-size columns
         (0..11).forEach { sheet.autoSizeColumn(it) }
+    }
+
+    private fun writeExcelExport(workbook: Workbook) {
+        try {
+            logger.warn("Writing to Excel file...")
+            val file = codeGenerator.createNewFile(
+                Dependencies(false),
+                "de.klyk.annotationprocessorexcel.generated",
+                AnnotationConstants.DSGVO_FILE_NAME,
+                "xlsx"
+            )
+
+            file.use { workbook.write(it) }
+        } catch (e: IOException) {
+            logger.warn("Error writing to Excel file: ${e.message}")
+            e.printStackTrace()
+        }
     }
 }

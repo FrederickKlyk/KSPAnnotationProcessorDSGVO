@@ -14,38 +14,50 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private val excelData = mutableListOf<ExcelRow>()
     private val excludedProperties = mutableSetOf<String>()
 
+    // Visit all classes and delegate first properties
     override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
-        // Iterate over all properties and visit them first
+        // First process all properties of the class
         classDeclaration.getAllProperties().forEach { it.accept(this, Unit) }
 
         // Then process the class for export
         classDeclaration.annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_CLASS_NAME }?.let {
-            processDsgvoExport(classDeclaration)
+            classDeclaration.processDsgvoDataExport()
         }
     }
 
+    // Visit all properties
     override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
-        property.annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_PROPERTY_NAME }?.let {
-            property.getDsgvoPropertyData()
-        }
-        property.annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_EXCLUDE_FROM_DSGVO_NAME }?.let {
-            processExcludeFromDsgvoExport(property)
+        property.getExcludedPropertiesFromExcludeFromDsgvoAnnotation()
+    }
+
+    fun getCsvData(): String = csvData.toString()
+
+    fun getExcelData(): List<ExcelRow> = excelData
+
+    private fun KSPropertyDeclaration.getExcludedPropertiesFromExcludeFromDsgvoAnnotation() {
+        annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_EXCLUDE_FROM_DSGVO_NAME }?.let {
+            excludedProperties.add(simpleName.asString())
         }
     }
 
-    private fun processDsgvoExport(classDeclaration: KSClassDeclaration) {
-        val dsgvoInfoData = classDeclaration.getDsgvoInfoData()
-        val className = classDeclaration.simpleName.asString()
+    private fun KSPropertyDeclaration.getDsgvoPropertyDataFromDsgvoPropertyAnnotation() =
+        annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_PROPERTY_NAME }?.let {
+            getDsgvoPropertyData()
+        }
 
-        val properties = classDeclaration.getAllProperties().mapNotNull { property ->
+    private fun KSClassDeclaration.processDsgvoDataExport() {
+        val dsgvoInfoData = getDsgvoInfoData()
+        val className = simpleName.asString()
+
+        val dsgvoPropertiesFromAnnotation = getAllProperties().mapNotNull { property ->
             if (property.simpleName.asString() !in excludedProperties) {
-                property.getDsgvoPropertyData()
+                property.getDsgvoPropertyDataFromDsgvoPropertyAnnotation()
             } else {
                 null
             }
         }
 
-        val combinedPersonenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" + classDeclaration.getAllProperties()
+        val combinedPersonenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" + getAllProperties()
             .filter { it.simpleName.asString() !in excludedProperties }
             .joinToString(", ") { it.simpleName.asString() } + ")"
 
@@ -64,7 +76,7 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
                 .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
         }
 
-        properties.forEach { property ->
+        dsgvoPropertiesFromAnnotation.forEach { property ->
             property.verwendungszweck.forEach { verwendungsZweck ->
                 csvData.append(className).append(", ")
                     .append(dsgvoInfoData.kategorie.joinToString("; ")).append(", ")
@@ -81,16 +93,8 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             }
         }
 
-        excelData.add(ExcelRow(className, dsgvoInfoData.copy(personenbezogeneDaten = combinedPersonenbezogeneDaten), properties))
+        excelData.add(ExcelRow(className, dsgvoInfoData.copy(personenbezogeneDaten = combinedPersonenbezogeneDaten), dsgvoPropertiesFromAnnotation))
     }
-
-    private fun processExcludeFromDsgvoExport(property: KSPropertyDeclaration) {
-        excludedProperties.add(property.simpleName.asString())
-    }
-
-    fun getCsvData(): String = csvData.toString()
-
-    fun getExcelData(): List<ExcelRow> = excelData
 
     private fun KSPropertyDeclaration.getDsgvoPropertyData(): DsgvoPropertyData? {
         val annotation = annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }
