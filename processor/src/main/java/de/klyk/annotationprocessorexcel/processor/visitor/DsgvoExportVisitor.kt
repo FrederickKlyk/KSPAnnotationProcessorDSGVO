@@ -9,13 +9,14 @@ import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstant
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyData
 
-class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
+internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private val csvData = StringBuilder()
     private val excelData = mutableListOf<ExcelRow>()
     private val excludedProperties = mutableSetOf<String>()
 
     // Visit all classes and delegate first properties
     override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
+        logger.warn("Processing class in visitClassDeclaration: ${classDeclaration.simpleName.asString()}")
         // First process all properties of the class
         classDeclaration.getAllProperties().forEach { propertyDeclaration ->
             propertyDeclaration.accept(this, Unit)
@@ -29,6 +30,7 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
 
     // Visit all properties
     override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
+        logger.warn("Processing property in visitPropertyDeclaration: ${property.simpleName.asString()}")
         property.getExcludedPropertiesFromExcludeFromDsgvoAnnotation()
     }
 
@@ -47,6 +49,18 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             getDsgvoPropertyData()
         }
 
+    private fun KSPropertyDeclaration.getDsgvoPropertyData(): DsgvoPropertyData? {
+        val annotation = annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }
+        return annotation?.let {
+            DsgvoPropertyData(
+                name = simpleName.asString(),
+                verwendungszweck = (it.arguments.find { arg -> arg.name?.asString() == AnnotationConstants.VERWENDUNGSZWECK_PROPERTY }?.value as? List<*>)?.map { v ->
+                    v.toString().substringAfterLast(".")
+                } ?: emptyList()
+            )
+        }
+    }
+
     private fun KSClassDeclaration.processDsgvoDataExport() {
         val dsgvoInfoData = getDsgvoInfoData()
         val className = simpleName.asString()
@@ -59,9 +73,10 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             }
         }
 
-        val combinedPersonenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" + getAllProperties()
-            .filter { it.simpleName.asString() !in excludedProperties }
-            .joinToString(". ") { it.simpleName.asString() } + ")"
+        dsgvoInfoData.personenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" +
+                getAllProperties()
+                    .filter { it.simpleName.asString() !in excludedProperties }
+                    .joinToString(". ") { it.simpleName.asString() } + ")"
 
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
             csvData.append(className).append(", ")
@@ -70,7 +85,7 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
                 .append(dsgvoInfoData.land).append(", ")
                 .append(dsgvoInfoData.domaene).append(", ")
                 .append(dsgvoInfoData.system).append(", ")
-                .append(combinedPersonenbezogeneDaten).append(", ")
+                .append(dsgvoInfoData.personenbezogeneDaten).append(", ")
                 .append(dsgvoInfoData.quellen).append(", ")
                 .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
                 .append(dsgvoInfoData.drittland).append(", ")
@@ -86,7 +101,7 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
                     .append(dsgvoInfoData.land).append(", ")
                     .append(dsgvoInfoData.domaene).append(", ")
                     .append(dsgvoInfoData.system).append(", ")
-                    .append(combinedPersonenbezogeneDaten).append(", ")
+                    .append(dsgvoInfoData.personenbezogeneDaten).append(", ")
                     .append(dsgvoInfoData.quellen).append(", ")
                     .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
                     .append(dsgvoInfoData.drittland).append(", ")
@@ -95,19 +110,7 @@ class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             }
         }
 
-        excelData.add(ExcelRow(className, dsgvoInfoData.copy(personenbezogeneDaten = combinedPersonenbezogeneDaten), dsgvoPropertiesFromAnnotation))
-    }
-
-    private fun KSPropertyDeclaration.getDsgvoPropertyData(): DsgvoPropertyData? {
-        val annotation = annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }
-        return annotation?.let {
-            DsgvoPropertyData(
-                name = simpleName.asString(),
-                verwendungszweck = (it.arguments.find { arg -> arg.name?.asString() == AnnotationConstants.VERWENDUNGSZWECK_PROPERTY }?.value as? List<*>)?.map { v ->
-                    v.toString().substringAfterLast(".")
-                } ?: emptyList()
-            )
-        }
+        excelData.add(ExcelRow(className, dsgvoInfoData, dsgvoPropertiesFromAnnotation))
     }
 
     private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoInfoData {
