@@ -8,6 +8,12 @@ import de.klyk.annotationprocessorexcel.processor.DsgvoInfoData
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyData
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentBoolean
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnum
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumArray
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumArrayWithoutLowercase
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumWithoutLowercase
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentString
 
 internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private val csvData = StringBuilder()
@@ -54,9 +60,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         return annotation?.let {
             DsgvoPropertyData(
                 name = simpleName.asString(),
-                verwendungszweck = (it.arguments.find { arg -> arg.name?.asString() == AnnotationConstants.VERWENDUNGSZWECK_PROPERTY }?.value as? List<*>)?.map { v ->
-                    v.toString().substringAfterLast(".")
-                } ?: emptyList()
+                verwendungszweck = it.arguments.extractStringsFromAnnotationArgumentEnumArrayWithoutLowercase(AnnotationConstants.VERWENDUNGSZWECK_PROPERTY)
             )
         }
     }
@@ -118,24 +122,17 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
 
         return annotation?.arguments?.let { args ->
             DsgvoInfoData(
-                kategorie = (args.find { it.name?.asString() == AnnotationConstants.KATEGORIE.lowercase() }?.value as? List<*>)?.map {
-                    it.toString().substringAfterLast('.')
-                } ?: emptyList(),
-                verwendungszweck = (args.find { it.name?.asString() == AnnotationConstants.VERWENDUNGSZWECK.lowercase() }?.value as? List<*>)?.map {
-                    it.toString().substringAfterLast('.')
-                } ?: emptyList(),
-                land = args.find { it.name?.asString() == AnnotationConstants.LAND.lowercase() }?.value as? String ?: "Deutschland",
-                domaene = (args.find { it.name?.asString() == AnnotationConstants.DOMAENE.lowercase() }?.value.toString()).substringAfterLast("."),
-                system = args.find { it.name?.asString() == AnnotationConstants.SYSTEM.lowercase() }?.value.toString().substringAfterLast("."),
-                personenbezogeneDaten = args.find { it.name?.asString() == AnnotationConstants.PERSONENBEZOGENE_DATEN }?.value.toString()
-                    .substringAfterLast("."),
-                quellen = args.find { it.name?.asString() == AnnotationConstants.QUELLEN.lowercase() }?.value as? String ?: "",
-                kategorieVonEmpfaengern = (args.find { it.name?.asString() == AnnotationConstants.KATEGORIE_VON_EMPFAENGERN }?.value as? List<*>)?.map {
-                    it.toString().substringAfterLast('.')
-                } ?: emptyList(),
-                drittland = args.find { it.name?.asString() == AnnotationConstants.DRITTLAND.lowercase() }?.value as? Boolean ?: false,
-                bemerkungen = args.find { it.name?.asString() == AnnotationConstants.BEMERKUNGEN.lowercase() }?.value as? String ?: "",
-                optionaleTechnischeInformationen = args.find { it.name?.asString() == AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN }?.value as? String
+                kategorie = args.extractStringsFromAnnotationArgumentEnumArray(AnnotationConstants.KATEGORIE),
+                verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(AnnotationConstants.VERWENDUNGSZWECK),
+                land = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.LAND) ?: "Deutschland",
+                domaene = args.extractStringsFromAnnotationArgumentEnum(AnnotationConstants.DOMAENE),
+                system = args.extractStringsFromAnnotationArgumentEnum(AnnotationConstants.SYSTEM),
+                personenbezogeneDaten = args.extractStringsFromAnnotationArgumentEnumWithoutLowercase(AnnotationConstants.PERSONENBEZOGENE_DATEN),
+                quellen = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.QUELLEN) ?: "",
+                kategorieVonEmpfaengern = args.extractStringsFromAnnotationArgumentEnumArrayWithoutLowercase(AnnotationConstants.KATEGORIE_VON_EMPFAENGERN),
+                drittland = args.extractStringsFromAnnotationArgumentBoolean(AnnotationConstants.DRITTLAND) ?: false,
+                bemerkungen = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.BEMERKUNGEN) ?: "",
+                optionaleTechnischeInformationen = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN)
                     ?: ""
             )
         } ?: DsgvoInfoData()
