@@ -6,7 +6,7 @@ annotation class DsgvoProperty(
     val verwendungszweckProperty: Array<Verwendungszweck>
 )
 
-data class DsgvoPropertyData(
+data class DsgvoPropertyRelevantData(
     val name: String,
     val verwendungszweck: List<String>
 )

@@ -12,6 +12,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstant
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
 import de.klyk.annotationprocessorexcel.processor.visitor.ExcelRow
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.separatorKomma
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.Sheet
@@ -132,41 +133,41 @@ internal class DsgvoExportProcessor(
         // Create data rows
         excelData.forEach { row ->
             val className = row.className
-            val dsgvoInfoData = row.dsgvoInfoData
+            val dsgvoRelevantData = row.dsgvoRelevantData
 
             // Handle DsgvoClass verwendungszweck
-            dsgvoInfoData.verwendungszweck.forEach { verwendungszweck ->
+            dsgvoRelevantData.verwendungszweck.forEach { verwendungszweck ->
                 val dataRow = sheet.createRow(rowIndex++)
                 dataRow.createCell(0).setCellValue(className)
-                dataRow.createCell(1).setCellValue(dsgvoInfoData.kategorie.joinToString("; "))
+                dataRow.createCell(1).setCellValue(dsgvoRelevantData.kategorie.separatorKomma())
                 dataRow.createCell(2).setCellValue(verwendungszweck)
-                dataRow.createCell(3).setCellValue(dsgvoInfoData.land)
-                dataRow.createCell(4).setCellValue(dsgvoInfoData.domaene)
-                dataRow.createCell(5).setCellValue(dsgvoInfoData.system)
-                dataRow.createCell(6).setCellValue(dsgvoInfoData.personenbezogeneDaten)
-                dataRow.createCell(7).setCellValue(dsgvoInfoData.quellen)
-                dataRow.createCell(8).setCellValue(dsgvoInfoData.kategorieVonEmpfaengern.joinToString("; "))
-                dataRow.createCell(9).setCellValue(dsgvoInfoData.drittland.toString())
-                dataRow.createCell(10).setCellValue(dsgvoInfoData.bemerkungen)
-                dataRow.createCell(11).setCellValue(dsgvoInfoData.optionaleTechnischeInformationen)
+                dataRow.createCell(3).setCellValue(dsgvoRelevantData.land)
+                dataRow.createCell(4).setCellValue(dsgvoRelevantData.domaene)
+                dataRow.createCell(5).setCellValue(dsgvoRelevantData.system)
+                dataRow.createCell(6).setCellValue(dsgvoRelevantData.personenbezogeneDaten)
+                dataRow.createCell(7).setCellValue(dsgvoRelevantData.quellen)
+                dataRow.createCell(8).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKomma())
+                dataRow.createCell(9).setCellValue(dsgvoRelevantData.drittland.toString())
+                dataRow.createCell(10).setCellValue(dsgvoRelevantData.bemerkungen)
+                dataRow.createCell(11).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
             }
 
             // Handle DsgvoProperty verwendungszweck
-            row.properties.forEach { property ->
+            row.dsgvoPropertyRelevantData.forEach { property ->
                 property.verwendungszweck.forEach { verwendungszweck ->
                     val dataRow = sheet.createRow(rowIndex++)
                     dataRow.createCell(0).setCellValue(className)
-                    dataRow.createCell(1).setCellValue(dsgvoInfoData.kategorie.joinToString(", "))
+                    dataRow.createCell(1).setCellValue(dsgvoRelevantData.kategorie.separatorKomma())
                     dataRow.createCell(2).setCellValue("$verwendungszweck (${property.name})")
-                    dataRow.createCell(3).setCellValue(dsgvoInfoData.land)
-                    dataRow.createCell(4).setCellValue(dsgvoInfoData.domaene)
-                    dataRow.createCell(5).setCellValue(dsgvoInfoData.system)
-                    dataRow.createCell(6).setCellValue(dsgvoInfoData.personenbezogeneDaten)
-                    dataRow.createCell(7).setCellValue(dsgvoInfoData.quellen)
-                    dataRow.createCell(8).setCellValue(dsgvoInfoData.kategorieVonEmpfaengern.joinToString(", "))
-                    dataRow.createCell(9).setCellValue(dsgvoInfoData.drittland.toString())
-                    dataRow.createCell(10).setCellValue(dsgvoInfoData.bemerkungen)
-                    dataRow.createCell(11).setCellValue(dsgvoInfoData.optionaleTechnischeInformationen)
+                    dataRow.createCell(3).setCellValue(dsgvoRelevantData.land)
+                    dataRow.createCell(4).setCellValue(dsgvoRelevantData.domaene)
+                    dataRow.createCell(5).setCellValue(dsgvoRelevantData.system)
+                    dataRow.createCell(6).setCellValue(dsgvoRelevantData.personenbezogeneDaten)
+                    dataRow.createCell(7).setCellValue(dsgvoRelevantData.quellen)
+                    dataRow.createCell(8).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKomma())
+                    dataRow.createCell(9).setCellValue(dsgvoRelevantData.drittland.toString())
+                    dataRow.createCell(10).setCellValue(dsgvoRelevantData.bemerkungen)
+                    dataRow.createCell(11).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
                 }
             }
         }

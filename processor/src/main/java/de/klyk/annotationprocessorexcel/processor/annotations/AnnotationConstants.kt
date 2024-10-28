@@ -1,13 +1,9 @@
 package de.klyk.annotationprocessorexcel.processor.annotations
 
 object AnnotationConstants {
-    const val ANNOTATION_DSGVO_CLASS_NAME = "DsgvoClass"
-    const val ANNOTATION_DSGVO_PROPERTY_NAME = "DsgvoProperty"
-    const val ANNOTATION_EXCLUDE_FROM_DSGVO_NAME = "ExcludeFromDsgvoExport"
     const val DATENKLASSE_NAME = "Datenklasse"
     const val KATEGORIE = "Kategorie"
     const val VERWENDUNGSZWECK = "Verwendungszweck"
-    const val VERWENDUNGSZWECK_PROPERTY = "verwendungszweckProperty"
     const val LAND = "Land"
     const val DOMAENE = "domaene"
     const val SYSTEM = "System"

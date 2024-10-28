@@ -3,7 +3,7 @@ package de.klyk.annotationprocessorexcel.processor
 /**
  * Data class to store the DSGVO information.
  */
-data class DsgvoInfoData(
+data class DsgvoRelevantDataDto(
     var kategorie: List<String> = emptyList(),
     var verwendungszweck: List<String> = emptyList(),
     var land: String = "",

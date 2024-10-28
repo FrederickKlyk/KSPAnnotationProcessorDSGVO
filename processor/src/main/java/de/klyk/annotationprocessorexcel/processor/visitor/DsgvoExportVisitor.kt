@@ -4,16 +4,21 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
-import de.klyk.annotationprocessorexcel.processor.DsgvoInfoData
-import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
+import de.klyk.annotationprocessorexcel.processor.DsgvoRelevantDataDto
+import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
+import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyData
+import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyRelevantData
+import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
+import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
+import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
+import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
+import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentBoolean
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnum
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumArray
-import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumArrayWithoutLowercase
-import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumWithoutLowercase
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentString
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.toSimpleNameString
 
 internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private val csvData = StringBuilder()
@@ -29,7 +34,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         }
 
         // Then process the class for export
-        classDeclaration.annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_CLASS_NAME }?.let {
+        classDeclaration.annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }?.let {
             classDeclaration.processDsgvoDataExport()
         }
     }
@@ -45,22 +50,22 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     fun getExcelData(): List<ExcelRow> = excelData
 
     private fun KSPropertyDeclaration.getExcludedPropertiesFromExcludeFromDsgvoAnnotation() {
-        annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_EXCLUDE_FROM_DSGVO_NAME }?.let {
+        annotations.find { it.shortName.asString() == ExcludeFromDsgvoExport::class.simpleName }?.let {
             excludedProperties.add(simpleName.asString())
         }
     }
 
     private fun KSPropertyDeclaration.getDsgvoPropertyDataFromDsgvoPropertyAnnotation() =
-        annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_PROPERTY_NAME }?.let {
+        annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }?.let {
             getDsgvoPropertyData()
         }
 
-    private fun KSPropertyDeclaration.getDsgvoPropertyData(): DsgvoPropertyData? {
+    private fun KSPropertyDeclaration.getDsgvoPropertyData(): DsgvoPropertyRelevantData? {
         val annotation = annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }
         return annotation?.let {
-            DsgvoPropertyData(
+            DsgvoPropertyRelevantData(
                 name = simpleName.asString(),
-                verwendungszweck = it.arguments.extractStringsFromAnnotationArgumentEnumArrayWithoutLowercase(AnnotationConstants.VERWENDUNGSZWECK_PROPERTY)
+                verwendungszweck = it.arguments.extractStringsFromAnnotationArgumentEnumArray(DsgvoProperty::verwendungszweckProperty.name)
             )
         }
     }
@@ -117,30 +122,30 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         excelData.add(ExcelRow(className, dsgvoInfoData, dsgvoPropertiesFromAnnotation))
     }
 
-    private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoInfoData {
-        val annotation = annotations.find { it.shortName.asString() == AnnotationConstants.ANNOTATION_DSGVO_CLASS_NAME }
+    private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoRelevantDataDto {
+        val annotation = annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }
 
         return annotation?.arguments?.let { args ->
-            DsgvoInfoData(
-                kategorie = args.extractStringsFromAnnotationArgumentEnumArray(AnnotationConstants.KATEGORIE),
-                verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(AnnotationConstants.VERWENDUNGSZWECK),
-                land = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.LAND) ?: "Deutschland",
-                domaene = args.extractStringsFromAnnotationArgumentEnum(AnnotationConstants.DOMAENE),
-                system = args.extractStringsFromAnnotationArgumentEnum(AnnotationConstants.SYSTEM),
-                personenbezogeneDaten = args.extractStringsFromAnnotationArgumentEnumWithoutLowercase(AnnotationConstants.PERSONENBEZOGENE_DATEN),
-                quellen = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.QUELLEN) ?: "",
-                kategorieVonEmpfaengern = args.extractStringsFromAnnotationArgumentEnumArrayWithoutLowercase(AnnotationConstants.KATEGORIE_VON_EMPFAENGERN),
-                drittland = args.extractStringsFromAnnotationArgumentBoolean(AnnotationConstants.DRITTLAND) ?: false,
-                bemerkungen = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.BEMERKUNGEN) ?: "",
-                optionaleTechnischeInformationen = args.extractStringsFromAnnotationArgumentString(AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN)
+            DsgvoRelevantDataDto(
+                kategorie = args.extractStringsFromAnnotationArgumentEnumArray(Kategorie::class.toSimpleNameString()),
+                verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(Verwendungszweck::class.toSimpleNameString()),
+                land = args.extractStringsFromAnnotationArgumentString(DsgvoClass::land.name) ?: "",
+                domaene = args.extractStringsFromAnnotationArgumentEnum(Domaene::class.toSimpleNameString()),
+                system = args.extractStringsFromAnnotationArgumentEnum(System::class.toSimpleNameString()),
+                personenbezogeneDaten = args.extractStringsFromAnnotationArgumentEnum(PersonenbezogeneDaten::class.toSimpleNameString()),
+                quellen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::quellen.name) ?: "",
+                kategorieVonEmpfaengern = args.extractStringsFromAnnotationArgumentEnumArray(kategorieVonEmpfaengern::class.toSimpleNameString()),
+                drittland = args.extractStringsFromAnnotationArgumentBoolean(DsgvoClass::drittland.name) ?: false,
+                bemerkungen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::bemerkungen.name) ?: "",
+                optionaleTechnischeInformationen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::optionaleTechnischeInformationen.name)
                     ?: ""
             )
-        } ?: DsgvoInfoData()
+        } ?: DsgvoRelevantDataDto()
     }
 }
 
 data class ExcelRow(
     val className: String,
-    val dsgvoInfoData: DsgvoInfoData,
-    val properties: Sequence<DsgvoPropertyData>
+    val dsgvoRelevantData: DsgvoRelevantDataDto,
+    val dsgvoPropertyRelevantData: Sequence<DsgvoPropertyRelevantData>
 )
