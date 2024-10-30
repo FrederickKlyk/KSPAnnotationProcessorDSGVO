@@ -55,12 +55,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         }
     }
 
-    private fun KSPropertyDeclaration.getDsgvoPropertyDataFromDsgvoPropertyAnnotation() =
-        annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }?.let {
-            getDsgvoPropertyData()
-        }
-
-    private fun KSPropertyDeclaration.getDsgvoPropertyData(): DsgvoPropertyRelevantData? {
+    private fun KSPropertyDeclaration.getDsgvoPropertyDataFromDsgvoPropertyAnnotation(): DsgvoPropertyRelevantData? {
         val annotation = annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }
         return annotation?.let {
             DsgvoPropertyRelevantData(
