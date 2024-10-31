@@ -1,4 +1,4 @@
-package de.klyk.annotationprocessorexcel.processor
+package de.klyk.annotationprocessorexcel.processor.model
 
 /**
  * Data class to store the DSGVO information.

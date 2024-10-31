@@ -8,11 +8,12 @@ import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
+import com.google.devtools.ksp.validate
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
+import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
 import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
-import de.klyk.annotationprocessorexcel.processor.visitor.ExcelRow
-import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.separatorKomma
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.separatorKommaForExport
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.Sheet
@@ -36,20 +37,24 @@ internal class DsgvoExportProcessor(
             logger.warn("shouldRun= $shouldRun, Processor wird vorzeitig ohne Durchlauf beendet!")
             return emptyList()
         }
-
         logger.warn("Processor started!")
-        val symbols = resolver.findAnnotations(DsgvoClass::class)
-        if (symbols.none()) {
+
+        val symbolsDsgvo = resolver.findAnnotations(DsgvoClass::class)
+        if (symbolsDsgvo.none()) {
             logger.warn("No classes with DsgvoExportExcel annotation found!")
             return emptyList()
         }
 
         // Visit all classes and delegate in first step visit properties
         val visitor = DsgvoExportVisitor(logger)
-        symbols.forEach { classDeclaration ->
+        symbolsDsgvo.forEach { classDeclaration ->
             classDeclaration.accept(visitor, Unit)
         }
-        val sourceFiles = symbols.mapNotNull {
+        /**
+         * Für jedes Symbol wird die zugehörige Quelldatei ermittelt und in einer Liste gespeichert.
+         * Wird für die Dependencies in der CodeGenerator.createNewFile-Methode benötigt (inkrementelle Kompilierungsstrategie).
+         */
+        val sourceFiles = symbolsDsgvo.mapNotNull {
             logger.warn("Source file: ${it.simpleName.asString()}: ${it.containingFile}")
             it.containingFile
         }.toList()
@@ -58,7 +63,15 @@ internal class DsgvoExportProcessor(
         createExcelExport(visitor.getExcelData(), sourceFiles)
 
         logger.warn("Processor finished!")
-        return emptyList()
+
+        /**
+         * Beispiele für ungültige Symbole:
+         * Fehlende Annotationen: Das Symbol hat nicht die erforderlichen Annotationen.
+         * Ungültige Syntax: Das Symbol enthält Syntaxfehler oder ist unvollständig.
+         * Falscher Typ: Das Symbol ist nicht der erwartete Typ (z.B. eine Klasse statt einer Methode).
+         * Fehlende Abhängigkeiten: Das Symbol hängt von anderen Symbolen ab, die nicht vorhanden oder nicht korrekt sind.
+         */
+        return symbolsDsgvo.filterNot { it.validate() }.toList()
     }
 
     private fun Resolver.findAnnotations(kClass: KClass<*>) =
@@ -137,37 +150,43 @@ internal class DsgvoExportProcessor(
 
             // Handle DsgvoClass verwendungszweck
             dsgvoRelevantData.verwendungszweck.forEach { verwendungszweck ->
+                var cellCount = 0
                 val dataRow = sheet.createRow(rowIndex++)
-                dataRow.createCell(0).setCellValue(className)
-                dataRow.createCell(1).setCellValue(dsgvoRelevantData.kategorie.separatorKomma())
-                dataRow.createCell(2).setCellValue(verwendungszweck)
-                dataRow.createCell(3).setCellValue(dsgvoRelevantData.land)
-                dataRow.createCell(4).setCellValue(dsgvoRelevantData.domaene)
-                dataRow.createCell(5).setCellValue(dsgvoRelevantData.system)
-                dataRow.createCell(6).setCellValue(dsgvoRelevantData.personenbezogeneDaten)
-                dataRow.createCell(7).setCellValue(dsgvoRelevantData.quellen)
-                dataRow.createCell(8).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKomma())
-                dataRow.createCell(9).setCellValue(dsgvoRelevantData.drittland.toString())
-                dataRow.createCell(10).setCellValue(dsgvoRelevantData.bemerkungen)
-                dataRow.createCell(11).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
+                dataRow.apply {
+                    createCell(cellCount++).setCellValue(className)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorie.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(verwendungszweck)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.land)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.domaene)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.personenbezogeneDaten)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.quellen)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.drittland.toString())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
+                    createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
+                }
             }
 
             // Handle DsgvoProperty verwendungszweck
             row.dsgvoPropertyRelevantData.forEach { property ->
                 property.verwendungszweck.forEach { verwendungszweck ->
+                    var cellCount = 0
                     val dataRow = sheet.createRow(rowIndex++)
-                    dataRow.createCell(0).setCellValue(className)
-                    dataRow.createCell(1).setCellValue(dsgvoRelevantData.kategorie.separatorKomma())
-                    dataRow.createCell(2).setCellValue("$verwendungszweck (${property.name})")
-                    dataRow.createCell(3).setCellValue(dsgvoRelevantData.land)
-                    dataRow.createCell(4).setCellValue(dsgvoRelevantData.domaene)
-                    dataRow.createCell(5).setCellValue(dsgvoRelevantData.system)
-                    dataRow.createCell(6).setCellValue(dsgvoRelevantData.personenbezogeneDaten)
-                    dataRow.createCell(7).setCellValue(dsgvoRelevantData.quellen)
-                    dataRow.createCell(8).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKomma())
-                    dataRow.createCell(9).setCellValue(dsgvoRelevantData.drittland.toString())
-                    dataRow.createCell(10).setCellValue(dsgvoRelevantData.bemerkungen)
-                    dataRow.createCell(11).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
+                    dataRow.apply {
+                        createCell(cellCount++).setCellValue(className)
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorie.separatorKommaForExport())
+                        createCell(cellCount++).setCellValue(verwendungszweck)
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.land)
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.domaene)
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
+                        createCell(cellCount++).setCellValue(property.name)
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.quellen)
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKommaForExport())
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.drittland.toString())
+                        createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
+                        createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
+                    }
                 }
             }
         }

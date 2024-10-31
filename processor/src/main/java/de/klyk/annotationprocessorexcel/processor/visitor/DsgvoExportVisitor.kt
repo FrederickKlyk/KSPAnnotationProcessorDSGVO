@@ -4,7 +4,6 @@ import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
-import de.klyk.annotationprocessorexcel.processor.DsgvoRelevantDataDto
 import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
@@ -14,12 +13,18 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
+import de.klyk.annotationprocessorexcel.processor.model.DsgvoRelevantDataDto
+import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentBoolean
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnum
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumArray
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentString
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.toSimpleNameString
 
+/**
+ * the visitor is only responsible for data collection, while the processor handles the creation and extraction of the Excel data,
+ * adhering to the separation of concerns principle.
+ */
 internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private val csvData = StringBuilder()
     private val excelData = mutableListOf<ExcelRow>()
@@ -101,11 +106,11 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             property.verwendungszweck.forEach { verwendungsZweck ->
                 csvData.append(className).append(", ")
                     .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
-                    .append("$verwendungsZweck (${property.name})").append(", ")
+                    .append(verwendungsZweck).append(", ")
                     .append(dsgvoInfoData.land).append(", ")
                     .append(dsgvoInfoData.domaene).append(", ")
                     .append(dsgvoInfoData.system).append(", ")
-                    .append(dsgvoInfoData.personenbezogeneDaten).append(", ")
+                    .append(property.name).append(", ")
                     .append(dsgvoInfoData.quellen).append(", ")
                     .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
                     .append(dsgvoInfoData.drittland).append(", ")
@@ -138,9 +143,3 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         } ?: DsgvoRelevantDataDto()
     }
 }
-
-data class ExcelRow(
-    val className: String,
-    val dsgvoRelevantData: DsgvoRelevantDataDto,
-    val dsgvoPropertyRelevantData: Sequence<DsgvoPropertyRelevantData>
-)

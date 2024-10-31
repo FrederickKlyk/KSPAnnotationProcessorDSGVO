@@ -26,5 +26,5 @@ internal object VisitorExtractHelper {
 
     fun KClass<*>.toSimpleNameString() = simpleName ?: ""
 
-    fun List<String>.separatorKomma() = this.joinToString(", ")
+    fun List<String>.separatorKommaForExport() = this.joinToString(", ").trim{ it == ',' || it == ' ' }
 }
