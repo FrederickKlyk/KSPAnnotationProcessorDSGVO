@@ -30,7 +30,7 @@ internal class DsgvoExportProcessor(
     options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val shouldRun: Boolean = options["runProcessor"]?.toBoolean() ?: false
+    private val shouldRun: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (!shouldRun) {
@@ -74,9 +74,15 @@ internal class DsgvoExportProcessor(
         return symbolsDsgvo.filterNot { it.validate() }.toList()
     }
 
+    /**
+     * Finde alle Symbole mit der angegebenen Klassen-Nnnotation.
+     */
     private fun Resolver.findAnnotations(kClass: KClass<*>) =
         getSymbolsWithAnnotation(kClass.qualifiedName.toString()).filterIsInstance<KSClassDeclaration>()
 
+    /**
+     * Schreibe die CSV-Datei.
+     */
     private fun writeCsvExport(csvData: String, sourceFiles: List<KSFile>) {
         try {
             logger.warn("Writing to CSV file...")
@@ -99,8 +105,12 @@ internal class DsgvoExportProcessor(
         }
     }
 
+    /**
+     * Bereite den Excelreport inklusive Styling vor und führe final den Excelexport durch.
+     */
     private fun createExcelExport(excelData: List<ExcelRow>, sourceFiles: List<KSFile>) {
         logger.warn("Creating Excel export...")
+        // Create Excel workbook and sheet
         val workbook: Workbook = XSSFWorkbook()
         val sheet = workbook.createSheet("FrontendDsgvoReport")
         val cellStyle = workbook.createCellStyle().apply {
@@ -112,6 +122,9 @@ internal class DsgvoExportProcessor(
         writeExcelExport(workbook, sourceFiles)
     }
 
+    /**
+     * Extrahiere die DSGVO-Daten aus den Excel-Rohdaten und schreibe sie in die Excel-Exportdatei.
+     */
     private fun extractDsgvoData(
         excelData: List<ExcelRow>,
         sheet: Sheet,
@@ -195,6 +208,9 @@ internal class DsgvoExportProcessor(
         (0..11).forEach { sheet.autoSizeColumn(it) }
     }
 
+    /**
+     * Schreibe den Excel-Export.
+     */
     private fun writeExcelExport(workbook: Workbook, sourceFiles: List<KSFile>) {
         try {
             logger.warn("Writing to Excel file...")
