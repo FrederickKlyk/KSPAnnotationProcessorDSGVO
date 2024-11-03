@@ -2,6 +2,7 @@ package de.klyk.annotationprocessorexcel.processor.visitor
 
 import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSClassDeclaration
+import com.google.devtools.ksp.symbol.KSName
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
@@ -26,11 +27,15 @@ import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractH
  * adhering to the separation of concerns principle.
  */
 internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
+    // Initialize maps for excluded properties and purposes of the classes
+    private val excludedPropertiesMap = mutableMapOf<KSName, MutableList<String>>()
+    private val purposesMap = mutableMapOf<KSName, MutableList<DsgvoPropertyRelevantData>>()
+
+    // Initialize the data for the csv and excel export
     private val csvData = StringBuilder()
     private val excelData = mutableListOf<ExcelRow>()
-    private val excludedProperties = mutableSetOf<String>()
 
-    // Visit all classes and delegate first properties
+    // Visit all classes and delegate first properties processing and then class processing
     override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
         logger.warn("Processing class in visitClassDeclaration: ${classDeclaration.simpleName.asString()}")
         // First process all properties of the class
@@ -44,25 +49,38 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         }
     }
 
-    // Visit all properties
+    // Visit all properties of a specific dsgvo annotated class
     override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
-        logger.warn("Processing property in visitPropertyDeclaration: ${property.simpleName.asString()}")
-        property.getExcludedPropertiesFromExcludeFromDsgvoAnnotation()
+        val className = property.parentDeclaration?.simpleName ?: return
+        logger.warn("Processing property in visitPropertyDeclaration: ${property.simpleName.asString()} in class ${className.asString()}")
+
+        property.processDsgvoPropertyExcludedAndPurposeAnnotationData(className)
     }
 
     fun getCsvData(): String = csvData.toString()
 
     fun getExcelData(): List<ExcelRow> = excelData
 
-    private fun KSPropertyDeclaration.getExcludedPropertiesFromExcludeFromDsgvoAnnotation() {
-        annotations.find { it.shortName.asString() == ExcludeFromDsgvoExport::class.simpleName }?.let {
-            excludedProperties.add(simpleName.asString())
+    // Process the excluded and purpose annotation data of a property
+    private fun KSPropertyDeclaration.processDsgvoPropertyExcludedAndPurposeAnnotationData(className: KSName) {
+        // Initialize maps if not already done
+        excludedPropertiesMap.putIfAbsent(className, mutableListOf())
+        purposesMap.putIfAbsent(className, mutableListOf())
+        // Check if the property is excluded
+        if (isExcluded()) {
+            excludedPropertiesMap[className]?.add(simpleName.asString())
+        } else {
+            getDsgvoPropertyDataFromDsgvoPropertyAnnotation()?.let {
+                purposesMap[className]?.add(it)
+            }
         }
     }
 
+    /**
+     * Extract the DsgvoProperty annotation data from the property declaration
+     */
     private fun KSPropertyDeclaration.getDsgvoPropertyDataFromDsgvoPropertyAnnotation(): DsgvoPropertyRelevantData? {
-        val annotation = annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }
-        return annotation?.let {
+        return annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }?.let {
             DsgvoPropertyRelevantData(
                 name = simpleName.asString(),
                 verwendungszweck = it.arguments.extractStringsFromAnnotationArgumentEnumArray(DsgvoProperty::verwendungszweckProperty.name)
@@ -70,25 +88,24 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         }
     }
 
+    private fun KSPropertyDeclaration.isExcluded(): Boolean = annotations.any { it.shortName.asString() == ExcludeFromDsgvoExport::class.simpleName }
+
     private fun KSClassDeclaration.processDsgvoDataExport() {
+        val className = simpleName
+        val classNameString = simpleName.asString()
+        val excludedProperties = excludedPropertiesMap[className] ?: emptyList()
+        val dsgvoPropertiesFromAnnotation = purposesMap[className] ?: emptyList()
         val dsgvoInfoData = getDsgvoInfoData()
-        val className = simpleName.asString()
 
-        val dsgvoPropertiesFromAnnotation = getAllProperties().mapNotNull { property ->
-            if (property.simpleName.asString() !in excludedProperties) {
-                property.getDsgvoPropertyDataFromDsgvoPropertyAnnotation()
-            } else {
-                null
-            }
-        }
-
+        // Add the class properties to the personenbezogeneDaten
         dsgvoInfoData.personenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" +
                 getAllProperties()
                     .filter { it.simpleName.asString() !in excludedProperties }
-                    .joinToString(". ") { it.simpleName.asString() } + ")"
+                    .joinToString(" ") { it.simpleName.asString() } + ")"
 
+        // Add the class with its purposes to the csv data
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
-            csvData.append(className).append(", ")
+            csvData.append(classNameString).append(", ")
                 .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
                 .append(verwendungsZweck).append(", ")
                 .append(dsgvoInfoData.land).append(", ")
@@ -102,9 +119,10 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
                 .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
         }
 
+        // Add the properties with their purposes to the csv data
         dsgvoPropertiesFromAnnotation.forEach { property ->
             property.verwendungszweck.forEach { verwendungsZweck ->
-                csvData.append(className).append(", ")
+                csvData.append(classNameString).append(", ")
                     .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
                     .append(verwendungsZweck).append(", ")
                     .append(dsgvoInfoData.land).append(", ")
@@ -119,13 +137,14 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             }
         }
 
-        excelData.add(ExcelRow(className, dsgvoInfoData, dsgvoPropertiesFromAnnotation))
+        excelData.add(ExcelRow(classNameString, dsgvoInfoData, dsgvoPropertiesFromAnnotation.asSequence()))
     }
 
+    /**
+     * Extract the DsgvoClass annotation data from the class declaration
+     */
     private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoRelevantDataDto {
-        val annotation = annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }
-
-        return annotation?.arguments?.let { args ->
+        return annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }?.arguments?.let { args ->
             DsgvoRelevantDataDto(
                 kategorie = args.extractStringsFromAnnotationArgumentEnumArray(Kategorie::class.toSimpleNameString()),
                 verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(Verwendungszweck::class.toSimpleNameString()),

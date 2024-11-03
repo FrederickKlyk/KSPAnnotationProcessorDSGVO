@@ -2,6 +2,7 @@ package de.klyk.annotationprocessorexcel.model
 
 import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
+import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
 import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
 import de.klyk.annotationprocessorexcel.processor.annotations.SystemCluster
@@ -10,7 +11,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfae
 
 @DsgvoClass(
     kategorie = [Kategorie.MITARBEITER, Kategorie.BESTANDSKUNDE],
-    verwendungszweck = [Verwendungszweck.KUNDENBINDUNG],
+    verwendungszweck = [Verwendungszweck.KUNDENBINDUNG, Verwendungszweck.LOGGING],
     domaene = Domaene.FINANZEN,
     system = SystemCluster.FRONTEND,
     personenbezogeneDaten = PersonenbezogeneDaten.JA,
@@ -26,5 +27,6 @@ data class Employee(
     val name: String,
     val concern: String,
     val phoneNumber: String,
+    @ExcludeFromDsgvoExport
     val email: String,
 )
