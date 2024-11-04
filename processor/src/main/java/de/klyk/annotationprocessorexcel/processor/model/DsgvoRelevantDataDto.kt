@@ -1,8 +1,11 @@
 package de.klyk.annotationprocessorexcel.processor.model
 
+import kotlinx.serialization.Serializable
+
 /**
  * Data class to store the DSGVO information.
  */
+@Serializable
 data class DsgvoRelevantDataDto(
     var kategorie: List<String> = emptyList(),
     var verwendungszweck: List<String> = emptyList(),

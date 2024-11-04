@@ -11,6 +11,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.validate
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
+import de.klyk.annotationprocessorexcel.processor.model.DsgvoDataStore
 import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
 import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.separatorKommaForExport
@@ -31,6 +32,7 @@ internal class DsgvoExportProcessor(
 ) : SymbolProcessor {
 
     private val shouldRun: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
+    private val dsgvoDataStore = DsgvoDataStore
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (!shouldRun) {
@@ -59,8 +61,11 @@ internal class DsgvoExportProcessor(
             it.containingFile
         }.toList()
 
-        writeCsvExport(visitor.getCsvData(), sourceFiles)
-        createExcelExport(visitor.getExcelData(), sourceFiles)
+        dsgvoDataStore.appendCsvData(visitor.getCsvData())
+        dsgvoDataStore.appendExcelData(visitor.getExcelData())
+
+        writeCsvExport(dsgvoDataStore.getCsvData(), sourceFiles)
+        createExcelExport(dsgvoDataStore.getExcelData(), sourceFiles)
 
         logger.warn("Processor finished!")
 
@@ -79,31 +84,6 @@ internal class DsgvoExportProcessor(
      */
     private fun Resolver.findAnnotations(kClass: KClass<*>) =
         getSymbolsWithAnnotation(kClass.qualifiedName.toString()).filterIsInstance<KSClassDeclaration>()
-
-    /**
-     * Schreibe die CSV-Datei.
-     */
-    private fun writeCsvExport(csvData: String, sourceFiles: List<KSFile>) {
-        try {
-            logger.warn("Writing to CSV file...")
-            codeGenerator.createNewFile(
-                Dependencies(
-                    false,
-                    *sourceFiles.toTypedArray()
-                ),
-                "de.klyk.annotationprocessorexcel.generated",
-                AnnotationConstants.DSGVO_FILE_NAME,
-                "csv"
-            ).apply {
-                bufferedWriter(Charsets.UTF_8).use { file ->
-                    file.write(csvData)
-                }
-            }
-        } catch (e: IOException) {
-            logger.warn("Error writing to CSV file: ${e.message}")
-            e.printStackTrace()
-        }
-    }
 
     /**
      * Bereite den Excelreport inklusive Styling vor und führe final den Excelexport durch.
@@ -217,7 +197,7 @@ internal class DsgvoExportProcessor(
             val file = codeGenerator.createNewFile(
                 Dependencies(
                     false,
-                    *sourceFiles.toTypedArray()
+                  // *sourceFiles.toTypedArray()
                 ),
                 "de.klyk.annotationprocessorexcel.generated",
                 AnnotationConstants.DSGVO_FILE_NAME,
@@ -227,6 +207,31 @@ internal class DsgvoExportProcessor(
             file.use { workbook.write(it) }
         } catch (e: IOException) {
             logger.warn("Error writing to Excel file: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Schreibe die CSV-Datei.
+     */
+    private fun writeCsvExport(csvData: String, sourceFiles: List<KSFile>) {
+        try {
+            logger.warn("Writing to CSV file...")
+            codeGenerator.createNewFile(
+                Dependencies(
+                    false,
+                    // *sourceFiles.toTypedArray()
+                ),
+                "de.klyk.annotationprocessorexcel.generated",
+                AnnotationConstants.DSGVO_FILE_NAME,
+                "csv"
+            ).apply {
+                bufferedWriter(Charsets.UTF_8).use { file ->
+                    file.write(csvData)
+                }
+            }
+        } catch (e: IOException) {
+            logger.warn("Error writing to CSV file: ${e.message}")
             e.printStackTrace()
         }
     }

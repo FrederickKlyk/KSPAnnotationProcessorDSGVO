@@ -21,7 +21,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfae
     kategorieVonEmpfaengern = [kategorieVonEmpfaengern.KUNDEN],
     drittland = false,
     bemerkungen = "Erstmal keine",
-    optionaleTechnischeInformationen = "Auch keine1",
+    optionaleTechnischeInformationen = "Auch keine11",
 )
 data class Kontaktdaten(
     val name: String,

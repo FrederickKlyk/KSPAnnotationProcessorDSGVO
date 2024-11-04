@@ -128,7 +128,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             }
         }
 
-        excelData.add(ExcelRow(classNameString, dsgvoInfoData, dsgvoPropertiesFromAnnotation.asSequence()))
+        excelData.add(ExcelRow(classNameString, dsgvoInfoData, dsgvoPropertiesFromAnnotation))
     }
 
     /**

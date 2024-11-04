@@ -72,3 +72,17 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 }
+
+tasks.register("clearDsgvoDataStoreFiles") {
+    dependsOn(":feature:kspDebugKotlin")
+    dependsOn(":app:kspDebugKotlin")
+    doLast("Cleaning Dsgvo Buffer Files") {
+        logger.lifecycle("DsgvoDataStore files cleared")
+    }
+}
+
+afterEvaluate {
+    tasks.named("compileDebugKotlin") {
+        dependsOn("clearDsgvoDataStoreFiles")
+    }
+}
