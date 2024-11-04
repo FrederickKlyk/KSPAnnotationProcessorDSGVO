@@ -92,7 +92,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         dsgvoInfoData.personenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" +
                 getAllProperties()
                     .filter { it.isExcluded().not() }
-                    .joinToString(" ") { it.simpleName.asString() } + ")"
+                    .joinToString(", ") { it.simpleName.asString() } + ")"
 
         // Add the class with its purposes to the csv data
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
