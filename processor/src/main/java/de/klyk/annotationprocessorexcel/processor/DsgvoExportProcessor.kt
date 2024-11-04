@@ -32,8 +32,8 @@ internal class DsgvoExportProcessor(
 ) : SymbolProcessor {
 
     private val shouldRun: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
-    private val bufferFilePath = "${options["project.root"]}\\build\\ksp-exports"
-    private val dsgvoDataStore = DsgvoDataStore(bufferFilePath)
+    private val bufferFilePath = "${options["project.root"]}/build/ksp-exports"
+    private val dsgvoDataStore = DsgvoDataStore(bufferFilePath, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (!shouldRun) {

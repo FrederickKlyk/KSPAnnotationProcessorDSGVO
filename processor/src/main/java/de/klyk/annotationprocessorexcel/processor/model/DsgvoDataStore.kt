@@ -1,40 +1,48 @@
 package de.klyk.annotationprocessorexcel.processor.model
 
+import com.google.devtools.ksp.processing.KSPLogger
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
 internal data class DsgvoDataStore(
-    private val rootPath: String
+    private val rootPath: String,
+    val logger: KSPLogger
 ) {
+    private val tempRootDir = File(rootPath)
 
-    val tempExcelFile = File("$rootPath\\dsgvo_data.json")
-    val tempRootDir = File(rootPath)
+    private val tempExcelFile = File(rootPath, "dsgvo_data.json")
+    private val csvFile = File(rootPath, "dsgvo_data.csv")
 
-    private val csvFile = File("${tempRootDir}\\dsgvo_data.csv")
-
-    fun getPath() = tempExcelFile.absolutePath
-
-    fun deleteFiles() {
-        csvFile.delete()
-        tempExcelFile.delete()
-    }
 
     fun appendCsvData(data: String) {
-        csvFile.appendText(data)
+        checkAndMakeDir {
+            csvFile.appendText(data)
+        }
     }
 
     fun getCsvData(): String {
         return csvFile.readText()
     }
 
+    private fun checkAndMakeDir(writeBlock: () -> Unit) {
+        if (tempRootDir.exists()) {
+            logger.warn("Pfad existiert nicht, Datei wird geschrieben")
+            writeBlock.invoke()
+        } else {
+            tempRootDir.mkdirs().apply {
+                logger.warn("Pfad existiert nicht, Ordner wird erstellt: $this")
+            }
+            writeBlock.invoke()
+        }
+    }
+
     fun appendExcelData(data: List<ExcelRow>) {
-        if (tempExcelFile.exists()) {
+        checkAndMakeDir {
             val existingData = getExcelData().toMutableList()
             existingData.addAll(data)
             tempExcelFile.writeText(Json.encodeToString(existingData))
-        } else {
-            tempExcelFile.mkdirs()
+            logger.warn("Pfad: ${tempExcelFile.absolutePath}, ${tempExcelFile.exists()}")
         }
     }
 

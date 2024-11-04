@@ -76,10 +76,12 @@ dependencies {
 
 tasks.register("clearDsgvoDataStoreFiles") {
     dependsOn(":app:kspDebugKotlin")
-    doLast("Cleaning Dsgvo Buffer Files") {
-        val fileP = file("build/ksp-exports/dsgvo_data.json")
-        fileP.delete()
-        logger.lifecycle("DsgvoDataStore files cleared at ${fileP.absolutePath}")
+    doLast("CleaningDsgvoBuffer") {
+        val fileExcelBuffer = file("${project.rootDir}/build/ksp-exports/dsgvo_data.json")
+        val fileCSVBuffer = file("${project.rootDir}/build/ksp-exports/dsgvo_data.csv")
+        fileExcelBuffer.delete()
+        fileCSVBuffer.delete()
+        logger.lifecycle("DsgvoDataStore files cleared! ${fileExcelBuffer.absolutePath}")
     }
 }
 
