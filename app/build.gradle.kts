@@ -48,6 +48,7 @@ android {
     // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDsgvoProcessor=true
     ksp {
         arg("runDsgvoProcessor", providers.gradleProperty("runDsgvoProcessor").orElse("true"))
+        arg("project.root", projectDir.parent.toString())
     }
 }
 
@@ -74,10 +75,11 @@ dependencies {
 }
 
 tasks.register("clearDsgvoDataStoreFiles") {
-    dependsOn(":feature:kspDebugKotlin")
     dependsOn(":app:kspDebugKotlin")
     doLast("Cleaning Dsgvo Buffer Files") {
-        logger.lifecycle("DsgvoDataStore files cleared")
+        val fileP = file("build/ksp-exports/dsgvo_data.json")
+        fileP.delete()
+        logger.lifecycle("DsgvoDataStore files cleared at ${fileP.absolutePath}")
     }
 }
 

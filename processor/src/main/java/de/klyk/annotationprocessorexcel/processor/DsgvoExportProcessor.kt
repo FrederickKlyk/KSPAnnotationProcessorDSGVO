@@ -32,14 +32,16 @@ internal class DsgvoExportProcessor(
 ) : SymbolProcessor {
 
     private val shouldRun: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
-    private val dsgvoDataStore = DsgvoDataStore
+    private val bufferFilePath = "${options["project.root"]}\\build\\ksp-exports"
+    private val dsgvoDataStore = DsgvoDataStore(bufferFilePath)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
         if (!shouldRun) {
             logger.warn("shouldRun= $shouldRun, Processor wird vorzeitig ohne Durchlauf beendet!")
             return emptyList()
         }
-        logger.warn("Processor started!")
+        logger.warn("Processor started!!")
+        logger.warn("Excel Buffer File Path: $bufferFilePath")
 
         val symbolsDsgvo = resolver.findAnnotations(DsgvoClass::class)
         if (symbolsDsgvo.none()) {

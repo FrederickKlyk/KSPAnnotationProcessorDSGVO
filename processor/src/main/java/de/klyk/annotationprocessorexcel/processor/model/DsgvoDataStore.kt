@@ -4,9 +4,21 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-object DsgvoDataStore {
-    private val csvFile = File("dsgvo_data.csv")
-    private val tempExcelFile = File("dsgvo_data.json")
+internal data class DsgvoDataStore(
+    private val rootPath: String
+) {
+
+    val tempExcelFile = File("$rootPath\\dsgvo_data.json")
+    val tempRootDir = File(rootPath)
+
+    private val csvFile = File("${tempRootDir}\\dsgvo_data.csv")
+
+    fun getPath() = tempExcelFile.absolutePath
+
+    fun deleteFiles() {
+        csvFile.delete()
+        tempExcelFile.delete()
+    }
 
     fun appendCsvData(data: String) {
         csvFile.appendText(data)
@@ -17,9 +29,13 @@ object DsgvoDataStore {
     }
 
     fun appendExcelData(data: List<ExcelRow>) {
-        val existingData = getExcelData().toMutableList()
-        existingData.addAll(data)
-        tempExcelFile.writeText(Json.encodeToString(existingData))
+        if (tempExcelFile.exists()) {
+            val existingData = getExcelData().toMutableList()
+            existingData.addAll(data)
+            tempExcelFile.writeText(Json.encodeToString(existingData))
+        } else {
+            tempExcelFile.mkdirs()
+        }
     }
 
     fun getExcelData(): List<ExcelRow> {
