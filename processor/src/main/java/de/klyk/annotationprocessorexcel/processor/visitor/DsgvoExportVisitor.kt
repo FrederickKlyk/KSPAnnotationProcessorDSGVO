@@ -28,7 +28,6 @@ import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractH
  */
 internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     // Initialize maps for excluded properties and purposes of the classes
-    private val excludedPropertiesMap = mutableMapOf<KSName, MutableList<String>>()
     private val purposesMap = mutableMapOf<KSName, MutableList<DsgvoPropertyRelevantData>>()
 
     // Initialize the data for the csv and excel export
@@ -54,25 +53,18 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         val className = property.parentDeclaration?.simpleName ?: return
         logger.warn("Processing property in visitPropertyDeclaration: ${property.simpleName.asString()} in class ${className.asString()}")
 
-        property.processDsgvoPropertyExcludedAndPurposeAnnotationData(className)
+        property.processDsgvoPropertyPurposeAnnotationData(className)
     }
 
     fun getCsvData(): String = csvData.toString()
 
     fun getExcelData(): List<ExcelRow> = excelData
 
-    // Process the excluded and purpose annotation data of a property
-    private fun KSPropertyDeclaration.processDsgvoPropertyExcludedAndPurposeAnnotationData(className: KSName) {
-        // Initialize maps if not already done
-        excludedPropertiesMap.putIfAbsent(className, mutableListOf())
+    // Process the purpose annotation data of a property, when available
+    private fun KSPropertyDeclaration.processDsgvoPropertyPurposeAnnotationData(className: KSName) {
         purposesMap.putIfAbsent(className, mutableListOf())
-        // Check if the property is excluded
-        if (isExcluded()) {
-            excludedPropertiesMap[className]?.add(simpleName.asString())
-        } else {
-            getDsgvoPropertyDataFromDsgvoPropertyAnnotation()?.let {
-                purposesMap[className]?.add(it)
-            }
+        getDsgvoPropertyDataFromDsgvoPropertyAnnotation()?.let {
+            purposesMap[className]?.add(it)
         }
     }
 
@@ -93,14 +85,13 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private fun KSClassDeclaration.processDsgvoDataExport() {
         val className = simpleName
         val classNameString = simpleName.asString()
-        val excludedProperties = excludedPropertiesMap[className] ?: emptyList()
         val dsgvoPropertiesFromAnnotation = purposesMap[className] ?: emptyList()
         val dsgvoInfoData = getDsgvoInfoData()
 
         // Add the class properties to the personenbezogeneDaten
         dsgvoInfoData.personenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" +
                 getAllProperties()
-                    .filter { it.simpleName.asString() !in excludedProperties }
+                    .filter { it.isExcluded().not() }
                     .joinToString(" ") { it.simpleName.asString() } + ")"
 
         // Add the class with its purposes to the csv data
