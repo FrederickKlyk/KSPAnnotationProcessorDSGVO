@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "AnnotationProcessorExcel"
 include(":app")
 include(":processor")
+include(":feature")

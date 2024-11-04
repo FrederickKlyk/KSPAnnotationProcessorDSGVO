@@ -1,39 +1,24 @@
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
 }
 
 android {
-    namespace = "de.klyk.annotationprocessorexcel"
+    namespace = "de.klyk.feature"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "de.klyk.annotationprocessorexcel"
         minSdk = 30
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
-
-        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    buildTypes {
-        release {
-            isMinifyEnabled = false
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-        }
-    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
     }
     kotlinOptions {
         jvmTarget = "21"
-    }
-    buildFeatures {
-        compose = true
     }
     kotlin {
         sourceSets {
@@ -45,7 +30,6 @@ android {
             }
         }
     }
-    // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDsgvoProcessor=true
     ksp {
         arg("runDsgvoProcessor", providers.gradleProperty("runDsgvoProcessor").orElse("true"))
     }
@@ -54,7 +38,6 @@ android {
 dependencies {
     implementation(project(":processor")) // since you want to use your @ annotations
     ksp(project(":processor"))
-    implementation((project(":feature")))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
