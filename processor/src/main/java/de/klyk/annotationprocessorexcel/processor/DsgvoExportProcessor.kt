@@ -221,6 +221,12 @@ internal class DsgvoExportProcessor(
     private fun writeCsvExport(csvData: String, sourceFiles: List<KSFile>) {
         try {
             logger.warn("Writing to CSV file...")
+            /**
+             * Für inkrementelle Builds ist es ideal, aggregating auf false zu setzen,
+             * wenn die Datei isoliert erzeugt werden kann. Das reduziert den Arbeitsaufwand bei kleinen Änderungen.
+             *
+             * sources: Eine Liste von KSFile, die die Abhängigkeiten definiert. Änderungen an diesen Dateien werden den inkrementellen Build auslösen.
+             */
             codeGenerator.createNewFile(
                 Dependencies(
                     false,

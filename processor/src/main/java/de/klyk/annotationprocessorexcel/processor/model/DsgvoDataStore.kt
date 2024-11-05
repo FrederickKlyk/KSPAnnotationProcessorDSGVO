@@ -28,7 +28,7 @@ internal data class DsgvoDataStore(
     private fun checkAndMakeDir(writeBlock: () -> Unit) {
         try {
             if (tempRootDir.exists()) {
-                logger.warn("Pfad existiert nicht, Datei wird geschrieben")
+                logger.warn("Pfad existiert, Datei wird geschrieben")
                 writeBlock.invoke()
             } else {
                 tempRootDir.mkdirs().apply {
@@ -47,7 +47,7 @@ internal data class DsgvoDataStore(
             existingData.addAll(data)
 
             tempExcelFile.writeText(Json.encodeToString(existingData))
-            logger.warn("Pfad: ${tempExcelFile.absolutePath}, ${tempExcelFile.exists()}")
+            logger.warn("Pfad dsgvo buffer json: ${tempExcelFile.absolutePath}, file exists: ${tempExcelFile.exists()}")
         }
     }
 
