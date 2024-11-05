@@ -26,14 +26,18 @@ internal data class DsgvoDataStore(
     }
 
     private fun checkAndMakeDir(writeBlock: () -> Unit) {
-        if (tempRootDir.exists()) {
-            logger.warn("Pfad existiert nicht, Datei wird geschrieben")
-            writeBlock.invoke()
-        } else {
-            tempRootDir.mkdirs().apply {
-                logger.warn("Pfad existiert nicht, Ordner wird erstellt: $this")
+        try {
+            if (tempRootDir.exists()) {
+                logger.warn("Pfad existiert nicht, Datei wird geschrieben")
+                writeBlock.invoke()
+            } else {
+                tempRootDir.mkdirs().apply {
+                    logger.warn("Pfad existiert nicht, Ordner wird erstellt: $this")
+                }
+                writeBlock.invoke()
             }
-            writeBlock.invoke()
+        } catch (e: Exception) {
+            logger.error("Fehler beim Schreiben der Datei: ${e.message}")
         }
     }
 
@@ -41,16 +45,22 @@ internal data class DsgvoDataStore(
         checkAndMakeDir {
             val existingData = getExcelData().toMutableList()
             existingData.addAll(data)
+
             tempExcelFile.writeText(Json.encodeToString(existingData))
             logger.warn("Pfad: ${tempExcelFile.absolutePath}, ${tempExcelFile.exists()}")
         }
     }
 
     fun getExcelData(): List<ExcelRow> {
-        return if (tempExcelFile.exists() && tempExcelFile.length() > 0) {
-            Json.decodeFromString(tempExcelFile.readText())
-        } else {
-            emptyList()
+        try {
+            return if (tempExcelFile.exists() && tempExcelFile.length() > 0) {
+                Json.decodeFromString(tempExcelFile.readText())
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            logger.error("Fehler beim Lesen der Datei: ${e.message}")
+            return emptyList()
         }
     }
 }

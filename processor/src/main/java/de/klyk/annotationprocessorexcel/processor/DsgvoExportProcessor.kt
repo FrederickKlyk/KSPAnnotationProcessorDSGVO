@@ -32,6 +32,7 @@ internal class DsgvoExportProcessor(
 ) : SymbolProcessor {
 
     private val shouldRun: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
+    private val exportExcel: Boolean = options["exportDsgvoExcel"]?.toBoolean() ?: false
     private val bufferFilePath = "${options["project.root"]}/build/ksp-exports"
     private val dsgvoDataStore = DsgvoDataStore(bufferFilePath, logger)
 
@@ -66,9 +67,10 @@ internal class DsgvoExportProcessor(
         dsgvoDataStore.appendCsvData(visitor.getCsvData())
         dsgvoDataStore.appendExcelData(visitor.getExcelData())
 
-        writeCsvExport(dsgvoDataStore.getCsvData(), sourceFiles)
-        createExcelExport(dsgvoDataStore.getExcelData(), sourceFiles)
-
+        if (exportExcel) {
+            writeCsvExport(dsgvoDataStore.getCsvData(), sourceFiles)
+            createExcelExport(dsgvoDataStore.getExcelData(), sourceFiles)
+        }
         logger.warn("Processor finished!")
 
         /**
@@ -199,7 +201,7 @@ internal class DsgvoExportProcessor(
             val file = codeGenerator.createNewFile(
                 Dependencies(
                     false,
-                  // *sourceFiles.toTypedArray()
+                    // *sourceFiles.toTypedArray()
                 ),
                 "de.klyk.annotationprocessorexcel.generated",
                 AnnotationConstants.DSGVO_FILE_NAME,

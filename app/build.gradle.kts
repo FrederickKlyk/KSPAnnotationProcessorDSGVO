@@ -48,6 +48,7 @@ android {
     // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDsgvoProcessor=true
     ksp {
         arg("runDsgvoProcessor", providers.gradleProperty("runDsgvoProcessor").orElse("true"))
+        arg("exportDsgvoExcel", "true")
         arg("project.root", projectDir.parent.toString())
     }
 }
