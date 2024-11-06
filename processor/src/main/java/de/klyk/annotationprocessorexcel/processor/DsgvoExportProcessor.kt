@@ -222,8 +222,12 @@ internal class DsgvoExportProcessor(
         try {
             logger.warn("Writing to CSV file...")
             /**
-             * Für inkrementelle Builds ist es ideal, aggregating auf false zu setzen,
-             * wenn die Datei isoliert erzeugt werden kann. Das reduziert den Arbeitsaufwand bei kleinen Änderungen.
+             * Aggregating: Wenn ein Processor aggregiert ist, bezieht sich jede Änderung an einem der Eingaben auf alle verarbeiteten Dateien
+             * und triggert eine erneute Verarbeitung aller abhängigen Dateien. Dies eignet sich für globale Ausgaben, wie eine Datei,
+             * die Daten aus mehreren Klassen oder Modulen kombiniert. (aggregating = true)
+             *
+             * Isolating: Ein isolierender Processor hat spezifische Eingaben-Ausgaben-Zuordnungen. Änderungen an einer Datei wirken sich nur auf
+             * direkt abhängige Ausgaben aus. (aggregating = false)
              *
              * sources: Eine Liste von KSFile, die die Abhängigkeiten definiert. Änderungen an diesen Dateien werden den inkrementellen Build auslösen.
              */
