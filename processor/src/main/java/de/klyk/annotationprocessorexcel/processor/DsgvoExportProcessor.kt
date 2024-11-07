@@ -23,6 +23,7 @@ import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.awt.Color
 import java.io.IOException
+import kotlin.math.log
 import kotlin.reflect.KClass
 
 internal class DsgvoExportProcessor(
@@ -31,14 +32,14 @@ internal class DsgvoExportProcessor(
     options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val shouldRun: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
+    private val runDsgvoProcessor: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
     private val exportExcel: Boolean = options["exportDsgvoExcel"]?.toBoolean() ?: false
     private val bufferFilePath = "${options["project.root"]}/build/ksp-exports"
     private val dsgvoDataStore = DsgvoDataStore(bufferFilePath, logger)
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (!shouldRun) {
-            logger.warn("shouldRun= $shouldRun, Processor wird vorzeitig ohne Durchlauf beendet!")
+        if (!runDsgvoProcessor) {
+            logger.warn("runDsgvoProcessor: $runDsgvoProcessor, Processor wird vorzeitig ohne Durchlauf beendet!")
             return emptyList()
         }
         logger.warn("Processor started!!")
@@ -46,7 +47,7 @@ internal class DsgvoExportProcessor(
 
         val symbolsDsgvo = resolver.findAnnotations(DsgvoClass::class)
         if (symbolsDsgvo.none()) {
-            logger.warn("No classes with DsgvoExportExcel annotation found!")
+            logger.warn("No classes with DsgvoClass annotation found!")
             return emptyList()
         }
 
@@ -70,6 +71,8 @@ internal class DsgvoExportProcessor(
         if (exportExcel) {
             writeCsvExport(dsgvoDataStore.getCsvData(), sourceFiles)
             createExcelExport(dsgvoDataStore.getExcelData(), sourceFiles)
+        }else{
+            logger.warn("ExportExcel Argument ist $exportExcel, kein Export wird durchgeführt!")
         }
         logger.warn("Processor finished!")
 
@@ -201,7 +204,7 @@ internal class DsgvoExportProcessor(
             val file = codeGenerator.createNewFile(
                 Dependencies(
                     false,
-                    // *sourceFiles.toTypedArray()
+                    *sourceFiles.toTypedArray()
                 ),
                 "de.klyk.annotationprocessorexcel.generated",
                 AnnotationConstants.DSGVO_FILE_NAME,
@@ -234,7 +237,7 @@ internal class DsgvoExportProcessor(
             codeGenerator.createNewFile(
                 Dependencies(
                     false,
-                    // *sourceFiles.toTypedArray()
+                    *sourceFiles.toTypedArray()
                 ),
                 "de.klyk.annotationprocessorexcel.generated",
                 AnnotationConstants.DSGVO_FILE_NAME,

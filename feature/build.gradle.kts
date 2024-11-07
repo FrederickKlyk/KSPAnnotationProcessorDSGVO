@@ -6,12 +6,14 @@ plugins {
 
 android {
     namespace = "de.klyk.feature"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 30
-        targetSdk = 34
     }
+
+    testOptions.targetSdk = 35
+    lint.targetSdk = 35
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

@@ -7,17 +7,18 @@ plugins {
 
 android {
     namespace = "de.klyk.annotationprocessorexcel"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "de.klyk.annotationprocessorexcel"
         minSdk = 30
-        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+
+    lint.targetSdk = 35
 
     buildTypes {
         release {
@@ -80,8 +81,9 @@ tasks.register("clearDsgvoDataStoreFiles") {
     doLast("CleaningDsgvoBuffer") {
         val fileExcelBuffer = file("${project.rootDir}/build/ksp-exports/dsgvo_data.json")
         val fileCSVBuffer = file("${project.rootDir}/build/ksp-exports/dsgvo_data.csv")
-        fileExcelBuffer.delete()
-        fileCSVBuffer.delete()
+
+        if (fileExcelBuffer.exists()) fileExcelBuffer.delete()
+        if (fileCSVBuffer.exists()) fileCSVBuffer.delete()
         logger.lifecycle("DsgvoDataStore files cleared! ${fileExcelBuffer.absolutePath}")
     }
 }
