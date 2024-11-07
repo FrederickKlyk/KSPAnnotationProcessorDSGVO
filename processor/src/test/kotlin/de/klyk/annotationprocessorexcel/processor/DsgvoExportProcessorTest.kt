@@ -1,22 +1,23 @@
+package de.klyk.annotationprocessorexcel.processor
+
 import com.tschuchort.compiletesting.KotlinCompilation
 import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.kspArgs
 import com.tschuchort.compiletesting.symbolProcessorProviders
-import de.klyk.annotationprocessorexcel.processor.DsgvoExportProcessorProvider
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.junit.Assert.assertEquals
-import org.junit.Test
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Test
 
+@OptIn(ExperimentalCompilerApi::class)
 class DsgvoExportProcessorTest {
 
-    @OptIn(ExperimentalCompilerApi::class)
     @Test
-    fun `test DsgvoExportProcessor generates expected files`() {
+    fun `test DsgvoExportProcessor generates expected buffer files`() {
         val compilation = KotlinCompilation().apply {
             sources = listOf(source)
             symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDsgvoProcessor" to "true")
+            kspArgs = mutableMapOf("runDsgvoProcessor" to "true", "exportDsgvoExcel" to "false", "project.root" to "build/testbuild")
         }
         val result = compilation.compile()
 
@@ -26,12 +27,10 @@ class DsgvoExportProcessorTest {
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }
 
-    companion object{
+    companion object {
         val source = SourceFile.kotlin(
             "Person.kt", """
-            package de.klyk.annotationprocessorexcel.model
-
-            import de.klyk.annotationprocessorexcel.processor.annotations.*
+            import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 
             @DsgvoClass(
                 kategorie = [Kategorie.BESTANDSKUNDE],
