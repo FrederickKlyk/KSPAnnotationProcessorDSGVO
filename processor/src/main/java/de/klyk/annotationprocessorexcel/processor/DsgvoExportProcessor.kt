@@ -23,7 +23,6 @@ import org.apache.poi.xssf.usermodel.XSSFColor
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import java.awt.Color
 import java.io.IOException
-import kotlin.math.log
 import kotlin.reflect.KClass
 
 internal class DsgvoExportProcessor(
@@ -71,7 +70,7 @@ internal class DsgvoExportProcessor(
         if (exportExcel) {
             writeCsvExport(dsgvoDataStore.getCsvData(), sourceFiles)
             createExcelExport(dsgvoDataStore.getExcelData(), sourceFiles)
-        }else{
+        } else {
             logger.warn("ExportExcel Argument ist $exportExcel, kein Export wird durchgeführt!")
         }
         logger.warn("Processor finished!")
