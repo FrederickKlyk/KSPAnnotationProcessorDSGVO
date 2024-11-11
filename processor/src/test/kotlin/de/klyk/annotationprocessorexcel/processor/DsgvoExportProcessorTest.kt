@@ -43,7 +43,7 @@ class DsgvoExportProcessorTest {
     }
 
     @Test
-    fun `test DsgvoExportProcessor generates buffe files but no csv and excel export`() {
+    fun `test DsgvoExportProcessor generates buffer files but no csv and excel export`() {
         val compilation = KotlinCompilation().apply {
             sources = listOf(source)
             symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
