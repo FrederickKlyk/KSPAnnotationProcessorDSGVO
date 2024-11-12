@@ -14,7 +14,11 @@ internal data class DsgvoDataStore(
     private val tempExcelFile = File(rootPath, "dsgvo_data.json")
     private val csvFile = File(rootPath, "dsgvo_data.csv")
 
-
+    /**
+     * Appends the data to the existing csv data.
+     * Synchronized to prevent concurrent writes.
+     */
+    @Synchronized
     fun appendCsvData(data: String) {
         checkAndMakeDir {
             csvFile.appendText(data)
@@ -41,6 +45,11 @@ internal data class DsgvoDataStore(
         }
     }
 
+    /**
+     * Appends the data to the existing excel data.
+     * Synchronized to prevent concurrent writes.
+     */
+    @Synchronized
     fun appendExcelData(data: List<ExcelRow>) {
         checkAndMakeDir {
             val existingData = getExcelData().toMutableList()

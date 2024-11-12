@@ -7,6 +7,8 @@ dependencies {
     //KSP
     implementation(libs.symbol.processing.api)
 
+
+    // Excel Export
     implementation(libs.poi.ooxml)
     implementation(libs.kotlinx.serialization.json)
 
