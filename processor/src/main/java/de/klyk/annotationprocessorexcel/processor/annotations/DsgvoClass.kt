@@ -40,9 +40,9 @@ enum class Domaene {
     FINANZEN
 }
 
-enum class Kategorie {
-    BESTANDSKUNDE,
-    MITARBEITER
+enum class Kategorie(override val displayName: String)  : DsgvoEnum {
+    BESTANDSKUNDE("Bestandskunde"),
+    MITARBEITER("Mitarbeiter")
 }
 
 enum class Verwendungszweck {

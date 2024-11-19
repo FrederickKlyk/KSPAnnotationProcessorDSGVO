@@ -11,6 +11,7 @@ import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.validate
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
+import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyRelevantData
 import de.klyk.annotationprocessorexcel.processor.model.DsgvoDataStore
 import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
 import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
@@ -168,30 +169,60 @@ internal class DsgvoExportProcessor(
             }
 
             // Handle DsgvoProperty verwendungszweck
-            row.dsgvoPropertyRelevantData.forEach { property ->
-                property.verwendungszweck.forEach { verwendungszweck ->
+            row.dsgvoPropertyRelevantData.getPropertyNamesByVerwendungszweck().forEach { mapEntry ->
                     var cellCount = 0
                     val dataRow = sheet.createRow(rowIndex++)
                     dataRow.apply {
                         createCell(cellCount++).setCellValue(className)
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorie.separatorKommaForExport())
-                        createCell(cellCount++).setCellValue(verwendungszweck)
+                        createCell(cellCount++).setCellValue(mapEntry.key)
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.land)
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.domaene)
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
-                        createCell(cellCount++).setCellValue(property.name)
+                        createCell(cellCount++).setCellValue(mapEntry.value.prettifyDataForExcelExport().separatorKommaForExport())
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.quellen)
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKommaForExport())
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.drittland.toString())
                         createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
                         createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
-                    }
+
                 }
             }
         }
 
         // Auto-size columns
         (0..11).forEach { sheet.autoSizeColumn(it) }
+    }
+
+    private fun List<String>.prettifyDataForExcelExport() = map{
+        it.removePrefix("_").replace('_', ' ')
+    }.distinct()
+
+    /**
+     * Returns a map with the Verwendungszweck as key and a list of property names with the same Verwendungszweck as value.
+     */
+    private fun List<DsgvoPropertyRelevantData>.getPropertyNamesByVerwendungszweck(): Map<String, List<String>> {
+        val t = this.getVerwendungszwecke().map {
+            it to this.getNamesWithSameVerwendungszweck(it)
+        }
+        return t.toMap()
+    }
+
+    /**
+     * @param List of DsgvoRelevantPropertyDataDto
+     * @return List of Verwendungszwecke
+     */
+    private fun List<DsgvoPropertyRelevantData>.getVerwendungszwecke(): List<String> {
+        return this.flatMap { it.verwendungszweck }.distinct()
+    }
+
+    /**
+     *
+     * @param List of DsgvoRelevantPropertyDataDto
+     * @return List an Strings (Property Names mit dem gleichen Verwendungszweck)
+     */
+    private fun List<DsgvoPropertyRelevantData>.getNamesWithSameVerwendungszweck(verwendungszweck: String): List<String> {
+        return this.filter { it.verwendungszweck.contains(verwendungszweck) }.map { it.displayName.ifEmpty { it.name } }
     }
 
     /**

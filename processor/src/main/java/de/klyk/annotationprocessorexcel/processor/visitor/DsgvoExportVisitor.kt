@@ -16,6 +16,7 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
 import de.klyk.annotationprocessorexcel.processor.model.DsgvoRelevantDataDto
 import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
+import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractDisplayNameFromAnnotationArgumentEnumArray
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentBoolean
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnum
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentEnumArray
@@ -131,13 +132,20 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         excelData.add(ExcelRow(classNameString, dsgvoInfoData, dsgvoPropertiesFromAnnotation))
     }
 
+    private fun Sequence<KSPropertyDeclaration>.toPropertyDisplayNames(
+        dsgvoProperties: List<DsgvoPropertyRelevantData>
+    ): Sequence<String> = map { property ->
+        dsgvoProperties.find { it.name == property.simpleName.asString() }?.displayName
+            ?: property.simpleName.asString()
+    }
+
     /**
      * Extract the DsgvoClass annotation data from the class declaration
      */
     private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoRelevantDataDto {
         return annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }?.arguments?.let { args ->
             DsgvoRelevantDataDto(
-                kategorie = args.extractStringsFromAnnotationArgumentEnumArray(Kategorie::class.toSimpleNameString()),
+                kategorie = args.extractDisplayNameFromAnnotationArgumentEnumArray(Kategorie::class.toSimpleNameString()),
                 verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(Verwendungszweck::class.toSimpleNameString()),
                 land = args.extractStringsFromAnnotationArgumentString(DsgvoClass::land.name) ?: "",
                 domaene = args.extractStringsFromAnnotationArgumentEnum(Domaene::class.toSimpleNameString()),

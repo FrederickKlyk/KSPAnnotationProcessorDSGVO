@@ -11,5 +11,6 @@ annotation class DsgvoProperty(
 @Serializable
 data class DsgvoPropertyRelevantData(
     val name: String,
-    val verwendungszweck: List<String>
+    val verwendungszweck: List<String>,
+    val displayName: String = ""
 )
