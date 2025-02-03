@@ -33,7 +33,7 @@ android {
         }
     }
     ksp {
-        arg("runDsgvoProcessor", providers.gradleProperty("runDsgvoProcessor").orElse("true"))
+        arg("runDSGVOProcessor", providers.gradleProperty("runDSGVOProcessor").orElse("true"))
         arg("project.root", projectDir.parent.toString())
     }
 }

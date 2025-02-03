@@ -32,17 +32,18 @@ internal class DsgvoExportProcessor(
     options: Map<String, String>
 ) : SymbolProcessor {
 
-    private val runDsgvoProcessor: Boolean = options["runDsgvoProcessor"]?.toBoolean() ?: false
-    private val exportExcel: Boolean = options["exportDsgvoExcel"]?.toBoolean() ?: false
+    private val exportExcel: Boolean = options["exportDSGVOExcel"]?.toBoolean() ?: false
     private val bufferFilePath = "${options["project.root"]}/build/ksp-exports"
-    private val dsgvoDataStore = DsgvoDataStore(bufferFilePath, logger)
+    private val pathDSGVODataStore = DsgvoDataStore(bufferFilePath, logger)
+    private val runDSGVOProcessor: Boolean = options["runDSGVOProcessor"]?.toBoolean() ?: false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
-        if (!runDsgvoProcessor) {
-            logger.warn("runDsgvoProcessor: $runDsgvoProcessor, Processor wird vorzeitig ohne Durchlauf beendet!")
+        if (!runDSGVOProcessor) {
+            logger.warn("runDSGVOProzessor: $runDSGVOProcessor, Prozessor wird vorzeitig ohne Durchlauf beendet!")
             return emptyList()
         }
         logger.warn("Processor started!!")
+
         logger.warn("Excel Buffer File Path: $bufferFilePath")
 
         val symbolsDsgvo = resolver.findAnnotations(DsgvoClass::class)
@@ -65,12 +66,12 @@ internal class DsgvoExportProcessor(
             it.containingFile
         }.toList()
 
-        dsgvoDataStore.appendCsvData(visitor.getCsvData())
-        dsgvoDataStore.appendExcelData(visitor.getExcelData())
+        pathDSGVODataStore.appendCsvData(visitor.getCsvData())
+        pathDSGVODataStore.appendExcelData(visitor.getExcelData())
 
         if (exportExcel) {
-            writeCsvExport(dsgvoDataStore.getCsvData(), sourceFiles)
-            createExcelExport(dsgvoDataStore.getExcelData(), sourceFiles)
+            writeCsvExport(pathDSGVODataStore.getCsvData(), sourceFiles)
+            createExcelExport(pathDSGVODataStore.getExcelData(), sourceFiles)
         } else {
             logger.warn("ExportExcel Argument ist $exportExcel, kein Export wird durchgeführt!")
         }

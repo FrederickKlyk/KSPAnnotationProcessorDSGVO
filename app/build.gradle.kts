@@ -46,10 +46,10 @@ android {
             }
         }
     }
-    // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDsgvoProcessor=true
+    // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDSGVOProcessor=true
     ksp {
-        arg("runDsgvoProcessor", providers.gradleProperty("runDsgvoProcessor").orElse("true"))
-        arg("exportDsgvoExcel", "true")
+        arg("runDSGVOProcessor", providers.gradleProperty("runDSGVOProcessor").orElse("true"))
+        arg("exportDSGVOExcel", "true")
         arg("project.root", projectDir.parent.toString())
     }
 }

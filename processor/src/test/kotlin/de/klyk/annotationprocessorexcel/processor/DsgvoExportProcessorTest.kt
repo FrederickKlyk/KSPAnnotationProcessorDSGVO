@@ -29,7 +29,7 @@ class DsgvoExportProcessorTest {
             sources = listOf(source)
             symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDsgvoProcessor" to "true", "exportDsgvoExcel" to "true", "project.root" to "build/testbuild")
+            kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "true", "project.root" to "build/testbuild")
         }
         val result = compilation.compile()
 
@@ -48,7 +48,7 @@ class DsgvoExportProcessorTest {
             sources = listOf(source)
             symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDsgvoProcessor" to "true", "exportDsgvoExcel" to "false", "project.root" to "build/testbuild")
+            kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
         }
         val result = compilation.compile()
 
@@ -60,16 +60,16 @@ class DsgvoExportProcessorTest {
     }
 
     @Test
-    fun `test DsgvoExportProcessor stop running when runDsgvoProcessor is false `() {
+    fun `test DsgvoExportProcessor stop running when runDSGVOProcessor is false `() {
         val compilation = KotlinCompilation().apply {
             sources = listOf(source)
             symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDsgvoProcessor" to "false", "exportDsgvoExcel" to "false", "project.root" to "build/testbuild")
+            kspArgs = mutableMapOf("runDSGVOProcessor" to "false", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
         }
         val result = compilation.compile()
 
-        assertEquals(true, result.messages.contains("runDsgvoProcessor: false, Processor wird vorzeitig ohne Durchlauf beendet!"))
+        assertEquals(true, result.messages.contains("runDSGVOProcessor: false, Processor wird vorzeitig ohne Durchlauf beendet!"))
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }
 
