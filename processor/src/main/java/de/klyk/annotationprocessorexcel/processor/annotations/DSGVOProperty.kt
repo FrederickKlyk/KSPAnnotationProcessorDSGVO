@@ -4,12 +4,12 @@ import kotlinx.serialization.Serializable
 
 @Target(AnnotationTarget.PROPERTY)
 @Retention(AnnotationRetention.SOURCE)
-annotation class DsgvoProperty(
+annotation class DSGVOProperty(
     val verwendungszweckProperty: Array<Verwendungszweck>
 )
 
 @Serializable
-data class DsgvoPropertyRelevantData(
+data class DSGVOPropertyRelevantData(
     val name: String,
     val verwendungszweck: List<String>,
     val displayName: String = ""

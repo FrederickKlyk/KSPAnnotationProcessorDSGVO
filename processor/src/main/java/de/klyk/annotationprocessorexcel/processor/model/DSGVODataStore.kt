@@ -5,7 +5,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-internal data class DsgvoDataStore(
+internal data class DSGVODataStore(
     private val rootPath: String,
     val logger: KSPLogger
 ) {
@@ -56,7 +56,7 @@ internal data class DsgvoDataStore(
             existingData.addAll(data)
 
             tempExcelFile.writeText(Json.encodeToString(existingData))
-            logger.warn("Pfad dsgvo buffer json: ${tempExcelFile.absolutePath}, file exists: ${tempExcelFile.exists()}")
+            logger.warn("Pfad DSGVO buffer json: ${tempExcelFile.absolutePath}, file exists: ${tempExcelFile.exists()}")
         }
     }
 

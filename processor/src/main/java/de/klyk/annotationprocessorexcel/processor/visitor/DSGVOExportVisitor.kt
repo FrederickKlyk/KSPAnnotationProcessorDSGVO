@@ -5,16 +5,16 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSName
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
-import de.klyk.annotationprocessorexcel.processor.annotations.DatenKategorie
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyRelevantData
-import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
+import de.klyk.annotationprocessorexcel.processor.annotations.Datenkategorie
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOProperty
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOPropertyRelevantData
+import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDSGVOExport
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
 import de.klyk.annotationprocessorexcel.processor.annotations.Solution
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenger
-import de.klyk.annotationprocessorexcel.processor.model.DsgvoRelevantDataDto
+import de.klyk.annotationprocessorexcel.processor.model.DSGVORelevantDataDto
 import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractDisplayNameFromAnnotationArgumentEnumArray
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractStringsFromAnnotationArgumentBoolean
@@ -27,9 +27,9 @@ import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractH
  * the visitor is only responsible for data collection, while the processor handles the creation and extraction of the Excel data,
  * adhering to the separation of concerns principle.
  */
-internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
+internal class DSGVOExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     // Initialize maps for excluded properties and purposes of the classes
-    private val purposesMap = mutableMapOf<KSName, MutableList<DsgvoPropertyRelevantData>>()
+    private val purposesMap = mutableMapOf<KSName, MutableList<DSGVOPropertyRelevantData>>()
 
     // Initialize the data for the csv and excel export
     private val csvData = StringBuilder()
@@ -44,17 +44,17 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         }
 
         // Then process the class for export
-        classDeclaration.annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }?.let {
-            classDeclaration.processDsgvoDataExport()
+        classDeclaration.annotations.find { it.shortName.asString() == DSGVOClass::class.simpleName }?.let {
+            classDeclaration.processDSGVODataExport()
         }
     }
 
-    // Visit all properties of a specific dsgvo annotated class
+    // Visit all properties of a specific DSGVO annotated class
     override fun visitPropertyDeclaration(property: KSPropertyDeclaration, data: Unit) {
         val className = property.parentDeclaration?.simpleName ?: return
         logger.warn("Processing property in visitPropertyDeclaration: ${property.simpleName.asString()} in class ${className.asString()}")
 
-        property.processDsgvoPropertyPurposeAnnotationData(className)
+        property.processDSGVOPropertyPurposeAnnotationData(className)
     }
 
     fun getCsvData(): String = csvData.toString()
@@ -62,28 +62,28 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     fun getExcelData(): List<ExcelRow> = excelData
 
     // Process the purpose annotation data of a property, when available
-    private fun KSPropertyDeclaration.processDsgvoPropertyPurposeAnnotationData(className: KSName) {
+    private fun KSPropertyDeclaration.processDSGVOPropertyPurposeAnnotationData(className: KSName) {
         purposesMap.putIfAbsent(className, mutableListOf())
-        getDsgvoPropertyDataFromDsgvoPropertyAnnotation()?.let {
+        getDSGVOPropertyDataFromDSGVOPropertyAnnotation()?.let {
             purposesMap[className]?.add(it)
         }
     }
 
     /**
-     * Extract the DsgvoProperty annotation data from the property declaration
+     * Extract the DSGVOProperty annotation data from the property declaration
      */
-    private fun KSPropertyDeclaration.getDsgvoPropertyDataFromDsgvoPropertyAnnotation(): DsgvoPropertyRelevantData? {
-        return annotations.find { it.shortName.asString() == DsgvoProperty::class.simpleName }?.let {
-            DsgvoPropertyRelevantData(
+    private fun KSPropertyDeclaration.getDSGVOPropertyDataFromDSGVOPropertyAnnotation(): DSGVOPropertyRelevantData? {
+        return annotations.find { it.shortName.asString() == DSGVOProperty::class.simpleName }?.let {
+            DSGVOPropertyRelevantData(
                 name = simpleName.asString(),
-                verwendungszweck = it.arguments.extractStringsFromAnnotationArgumentEnumArray(DsgvoProperty::verwendungszweckProperty.name)
+                verwendungszweck = it.arguments.extractStringsFromAnnotationArgumentEnumArray(DSGVOProperty::verwendungszweckProperty.name)
             )
         }
     }
 
-    private fun KSPropertyDeclaration.isExcluded(): Boolean = annotations.any { it.shortName.asString() == ExcludeFromDsgvoExport::class.simpleName }
+    private fun KSPropertyDeclaration.isExcluded(): Boolean = annotations.any { it.shortName.asString() == ExcludeFromDSGVOExport::class.simpleName }
 
-    private fun KSClassDeclaration.processDsgvoDataExport() {
+    private fun KSClassDeclaration.processDSGVODataExport() {
         val className = simpleName
         val classNameString = simpleName.asString()
         val dsgvoPropertiesFromAnnotation = purposesMap[className] ?: emptyList()
@@ -99,7 +99,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
             csvData.append(dsgvoInfoData.system).append(", ")
                 .append(classNameString).append(", ")
-                .append("(${dsgvoInfoData.datenKategorie.joinToString(". ")})").append(", ")
+                .append("(${dsgvoInfoData.datenkategorie.joinToString(". ")})").append(", ")
                 .append(verwendungsZweck).append(", ")
                 .append(dsgvoInfoData.beteiligteLaender).append(", ")
                 .append(dsgvoInfoData.solution).append(", ")
@@ -116,7 +116,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
             property.verwendungszweck.forEach { verwendungsZweck ->
                 csvData.append(dsgvoInfoData.system).append(", ")
                     .append(classNameString).append(", ")
-                    .append("(${dsgvoInfoData.datenKategorie.joinToString(". ")})").append(", ")
+                    .append("(${dsgvoInfoData.datenkategorie.joinToString(". ")})").append(", ")
                     .append(verwendungsZweck).append(", ")
                     .append(dsgvoInfoData.beteiligteLaender).append(", ")
                     .append(dsgvoInfoData.solution).append(", ")
@@ -133,7 +133,7 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     }
 
     private fun Sequence<KSPropertyDeclaration>.toPropertyDisplayNames(
-        dsgvoProperties: List<DsgvoPropertyRelevantData>
+        dsgvoProperties: List<DSGVOPropertyRelevantData>
     ): Sequence<String> = map { property ->
         dsgvoProperties.find { it.name == property.simpleName.asString() }?.displayName
             ?: property.simpleName.asString()
@@ -142,22 +142,22 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     /**
      * Extract the DsgvoClass annotation data from the class declaration
      */
-    private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoRelevantDataDto {
-        return annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }?.arguments?.let { args ->
-            DsgvoRelevantDataDto(
-                datenKategorie = args.extractDisplayNameFromAnnotationArgumentEnumArray(DatenKategorie::class.toSimpleNameString()),
+    private fun KSClassDeclaration.getDsgvoInfoData(): DSGVORelevantDataDto {
+        return annotations.find { it.shortName.asString() == DSGVOClass::class.simpleName }?.arguments?.let { args ->
+            DSGVORelevantDataDto(
+                datenkategorie = args.extractDisplayNameFromAnnotationArgumentEnumArray(Datenkategorie::class.toSimpleNameString()),
                 verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(Verwendungszweck::class.toSimpleNameString()),
-                beteiligteLaender = args.extractStringsFromAnnotationArgumentString(DsgvoClass::beteiligteLaender.name) ?: "",
+                beteiligteLaender = args.extractStringsFromAnnotationArgumentString(DSGVOClass::beteiligteLaender.name) ?: "",
                 solution = args.extractStringsFromAnnotationArgumentEnum(Solution::class.toSimpleNameString()),
                 system = args.extractStringsFromAnnotationArgumentEnum(System::class.toSimpleNameString()),
                 personenbezogeneDaten = args.extractStringsFromAnnotationArgumentEnum(PersonenbezogeneDaten::class.toSimpleNameString()),
-                datenquellen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::datenquellen.name) ?: "",
+                datenquellen = args.extractStringsFromAnnotationArgumentString(DSGVOClass::datenquellen.name) ?: "",
                 kategorieEmpfaenger = args.extractStringsFromAnnotationArgumentEnumArray(kategorieEmpfaenger::class.toSimpleNameString()),
-                datenVerschluesselt = args.extractStringsFromAnnotationArgumentBoolean(DsgvoClass::datenVerschluesselt.name) ?: false,
-                bemerkungen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::bemerkungen.name) ?: "",
-                optionaleTechnischeInformationen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::optionaleTechnischeInformationen.name)
+                datenVerschluesselt = args.extractStringsFromAnnotationArgumentBoolean(DSGVOClass::datenVerschluesselt.name) ?: false,
+                bemerkungen = args.extractStringsFromAnnotationArgumentString(DSGVOClass::bemerkungen.name) ?: "",
+                optionaleTechnischeInformationen = args.extractStringsFromAnnotationArgumentString(DSGVOClass::optionaleTechnischeInformationen.name)
                     ?: ""
             )
-        } ?: DsgvoRelevantDataDto()
+        } ?: DSGVORelevantDataDto()
     }
 }

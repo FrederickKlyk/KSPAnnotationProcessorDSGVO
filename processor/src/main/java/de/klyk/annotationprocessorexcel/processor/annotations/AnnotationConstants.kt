@@ -5,7 +5,7 @@ object AnnotationConstants {
     const val DATENKLASSE_NAME = "Datenklasse"
     const val SOLUTION = "Solution"
     const val SYSTEM = "System"
-    const val DATEN_KATEGORIE = "DatenKategorie"
+    const val DATENKATEGORIE = "Datenkategorie"
     const val PERSONENBEZOGENE_DATEN = "PersonenbezogeneDaten"
     const val VERWENDUNGSZWECK = "Verwendungszweck"
     const val DATENQUELLEN = "Datenquellen"

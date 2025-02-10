@@ -1,8 +1,7 @@
 package de.klyk.annotationprocessorexcel.processor.visitor.helper
 
-import com.google.devtools.ksp.processing.KSPLogger
 import com.google.devtools.ksp.symbol.KSValueArgument
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoEnum
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOEnum
 import kotlin.reflect.KClass
 
 /**
@@ -35,7 +34,7 @@ internal object VisitorExtractHelper {
                 enumArray?.find {
                     it.name == enumAsAny.toString().substringAfterLast(".")
                 }?.let {
-                    val enumDisplayName = (it as DsgvoEnum).displayName.ifEmpty { "/" }
+                    val enumDisplayName = (it as DSGVOEnum).displayName.ifEmpty { "/" }
                     return@map enumDisplayName
                 }
                 enumAsAny.toString().substringAfterLast('.')

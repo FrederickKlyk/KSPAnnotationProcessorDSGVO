@@ -76,20 +76,20 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 }
 
-tasks.register("clearDsgvoDataStoreFiles") {
+tasks.register("clearDSGVODataStoreFiles") {
     dependsOn(":app:kspDebugKotlin")
-    doLast("CleaningDsgvoBuffer") {
+    doLast("CleaningDSGVOBuffer") {
         val fileExcelBuffer = file("${project.rootDir}/build/ksp-exports/dsgvo_data.json")
         val fileCSVBuffer = file("${project.rootDir}/build/ksp-exports/dsgvo_data.csv")
 
         if (fileExcelBuffer.exists()) fileExcelBuffer.delete()
         if (fileCSVBuffer.exists()) fileCSVBuffer.delete()
-        logger.lifecycle("DsgvoDataStore files cleared! ${fileExcelBuffer.absolutePath}")
+        logger.lifecycle("DSGVODataStore files cleared! ${fileExcelBuffer.absolutePath}")
     }
 }
 
 afterEvaluate {
     tasks.named("compileDebugKotlin") {
-        dependsOn("clearDsgvoDataStoreFiles")
+        dependsOn("clearDSGVODataStoreFiles")
     }
 }

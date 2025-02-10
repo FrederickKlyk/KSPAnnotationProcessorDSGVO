@@ -1,20 +1,20 @@
 package de.klyk.annotationprocessorexcel.model
 
 import de.klyk.annotationprocessorexcel.processor.annotations.Solution
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
-import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
-import de.klyk.annotationprocessorexcel.processor.annotations.DatenKategorie
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOProperty
+import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDSGVOExport
+import de.klyk.annotationprocessorexcel.processor.annotations.Datenkategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
 import de.klyk.annotationprocessorexcel.processor.annotations.SystemCluster
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenger
 
-@DsgvoClass(
-    datenKategorie = [DatenKategorie.BESTANDSKUNDE],
+@DSGVOClass(
+    datenkategorie = [Datenkategorie.BESTANDSKUNDE],
     verwendungszweck = [Verwendungszweck.LOGGING, Verwendungszweck.RECOVERY],
     beteiligteLaender = "DE; FR; NL; IT",
-    solution = Solution.FINANZEN,
+    solution = Solution.CRM,
     system = SystemCluster.FRONTEND,
     personenbezogeneDaten = PersonenbezogeneDaten.JA,
     datenquellen = "partiendo",
@@ -27,9 +27,9 @@ data class Person(
     val name: String,
     val age: Int,
     val phoneNumber: Number,
-    @DsgvoProperty([Verwendungszweck.KUNDENWERBUNG, Verwendungszweck.KUNDENBINDUNG])
+    @DSGVOProperty([Verwendungszweck.KUNDENWERBUNG, Verwendungszweck.KUNDENBINDUNG])
     val email: String,
-    @ExcludeFromDsgvoExport
+    @ExcludeFromDSGVOExport
     val irrelevantInfo: String,
     val relevanteInfo: String
 )

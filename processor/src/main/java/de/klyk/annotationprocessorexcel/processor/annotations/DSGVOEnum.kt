@@ -1,5 +1,5 @@
 package de.klyk.annotationprocessorexcel.processor.annotations
 
-interface DsgvoEnum {
+interface DSGVOEnum {
     val displayName: String
 }

@@ -10,11 +10,11 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSFile
 import com.google.devtools.ksp.validate
 import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
-import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyRelevantData
-import de.klyk.annotationprocessorexcel.processor.model.DsgvoDataStore
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
+import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOPropertyRelevantData
+import de.klyk.annotationprocessorexcel.processor.model.DSGVODataStore
 import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
-import de.klyk.annotationprocessorexcel.processor.visitor.DsgvoExportVisitor
+import de.klyk.annotationprocessorexcel.processor.visitor.DSGVOExportVisitor
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.separatorKommaForExport
 import org.apache.poi.ss.usermodel.CellStyle
 import org.apache.poi.ss.usermodel.FillPatternType
@@ -26,7 +26,7 @@ import java.awt.Color
 import java.io.IOException
 import kotlin.reflect.KClass
 
-internal class DsgvoExportProcessor(
+internal class DSGVOExportProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
     options: Map<String, String>
@@ -34,7 +34,7 @@ internal class DsgvoExportProcessor(
 
     private val exportExcel: Boolean = options["exportDSGVOExcel"]?.toBoolean() ?: false
     private val bufferFilePath = "${options["project.root"]}/build/ksp-exports"
-    private val pathDSGVODataStore = DsgvoDataStore(bufferFilePath, logger)
+    private val pathDSGVODataStore = DSGVODataStore(bufferFilePath, logger)
     private val runDSGVOProcessor: Boolean = options["runDSGVOProcessor"]?.toBoolean() ?: false
 
     override fun process(resolver: Resolver): List<KSAnnotated> {
@@ -43,17 +43,16 @@ internal class DsgvoExportProcessor(
             return emptyList()
         }
         logger.warn("Processor started!!")
-
         logger.warn("Excel Buffer File Path: $bufferFilePath")
 
-        val symbolsDsgvo = resolver.findAnnotations(DsgvoClass::class)
+        val symbolsDsgvo = resolver.findAnnotations(DSGVOClass::class)
         if (symbolsDsgvo.none()) {
-            logger.warn("No classes with DsgvoClass annotation found!")
+            logger.warn("No classes with DSGVOClass annotation found!")
             return emptyList()
         }
 
         // Visit all classes and delegate in first step visit properties
-        val visitor = DsgvoExportVisitor(logger)
+        val visitor = DSGVOExportVisitor(logger)
         symbolsDsgvo.forEach { classDeclaration ->
             classDeclaration.accept(visitor, Unit)
         }
@@ -125,7 +124,7 @@ internal class DsgvoExportProcessor(
         val headers = listOf(
             AnnotationConstants.SYSTEM,
             AnnotationConstants.DATENKLASSE_NAME,
-            AnnotationConstants.DATEN_KATEGORIE,
+            AnnotationConstants.DATENKATEGORIE,
             AnnotationConstants.VERWENDUNGSZWECK,
             AnnotationConstants.BETEILIGTE_LAENDER,
             AnnotationConstants.SOLUTION,
@@ -147,7 +146,7 @@ internal class DsgvoExportProcessor(
         // Create data rows
         excelData.forEach { row ->
             val className = row.className
-            val dsgvoRelevantData = row.dsgvoRelevantData
+            val dsgvoRelevantData = row.DSGVORelevantData
 
             // Handle DsgvoClass verwendungszweck
             dsgvoRelevantData.verwendungszweck.forEach { verwendungszweck ->
@@ -156,7 +155,7 @@ internal class DsgvoExportProcessor(
                 dataRow.apply {
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
                     createCell(cellCount++).setCellValue(className)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenKategorie.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenkategorie.separatorKommaForExport())
                     createCell(cellCount++).setCellValue(verwendungszweck)
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.beteiligteLaender)
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.solution)
@@ -170,13 +169,13 @@ internal class DsgvoExportProcessor(
             }
 
             // Handle DsgvoProperty verwendungszweck
-            row.dsgvoPropertyRelevantData.getPropertyNamesByVerwendungszweck().forEach { mapEntry ->
+            row.DSGVOPropertyRelevantData.getPropertyNamesByVerwendungszweck().forEach { mapEntry ->
                 var cellCount = 0
                 val dataRow = sheet.createRow(rowIndex++)
                 dataRow.apply {
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
                     createCell(cellCount++).setCellValue(className)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenKategorie.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenkategorie.separatorKommaForExport())
                     createCell(cellCount++).setCellValue(mapEntry.key)
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.beteiligteLaender)
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.solution)
@@ -202,7 +201,7 @@ internal class DsgvoExportProcessor(
     /**
      * Returns a map with the Verwendungszweck as key and a list of property names with the same Verwendungszweck as value.
      */
-    private fun List<DsgvoPropertyRelevantData>.getPropertyNamesByVerwendungszweck(): Map<String, List<String>> {
+    private fun List<DSGVOPropertyRelevantData>.getPropertyNamesByVerwendungszweck(): Map<String, List<String>> {
         val t = this.getVerwendungszwecke().map {
             it to this.getNamesWithSameVerwendungszweck(it)
         }
@@ -213,7 +212,7 @@ internal class DsgvoExportProcessor(
      * @param List of DsgvoRelevantPropertyDataDto
      * @return List of Verwendungszwecke
      */
-    private fun List<DsgvoPropertyRelevantData>.getVerwendungszwecke(): List<String> {
+    private fun List<DSGVOPropertyRelevantData>.getVerwendungszwecke(): List<String> {
         return this.flatMap { it.verwendungszweck }.distinct()
     }
 
@@ -222,7 +221,7 @@ internal class DsgvoExportProcessor(
      * @param List of DsgvoRelevantPropertyDataDto
      * @return List an Strings (Property Names mit dem gleichen Verwendungszweck)
      */
-    private fun List<DsgvoPropertyRelevantData>.getNamesWithSameVerwendungszweck(verwendungszweck: String): List<String> {
+    private fun List<DSGVOPropertyRelevantData>.getNamesWithSameVerwendungszweck(verwendungszweck: String): List<String> {
         return this.filter { it.verwendungszweck.contains(verwendungszweck) }.map { it.displayName.ifEmpty { it.name } }
     }
 

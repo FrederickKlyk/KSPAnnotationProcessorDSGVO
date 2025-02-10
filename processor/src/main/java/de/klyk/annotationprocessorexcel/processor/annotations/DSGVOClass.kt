@@ -4,7 +4,7 @@ package de.klyk.annotationprocessorexcel.processor.annotations
  * Annotation to mark a class as DSGVO relevant.
  * @param solution which solution is leading / responsible for the data.
  * @param system which system (i.e. Frontend, Backend) is currently working with the data.
- * @param datenKategorie The category of the data.
+ * @param datenkategorie The category of the data.
  * @param personenbezogeneDaten The explicit personal data attributes.
  * @param verwendungszweck The purpose of the data processing.
  * @param datenquellen The source of the data.
@@ -16,10 +16,10 @@ package de.klyk.annotationprocessorexcel.processor.annotations
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class DsgvoClass(
+annotation class DSGVOClass(
     val solution: Solution,
     val system: SystemCluster,
-    val datenKategorie: Array<DatenKategorie>,
+    val datenkategorie: Array<Datenkategorie>,
     val personenbezogeneDaten: PersonenbezogeneDaten,
     val verwendungszweck: Array<Verwendungszweck>,
     val datenquellen: String,
@@ -55,7 +55,7 @@ enum class Solution {
     HR
 }
 
-enum class DatenKategorie(override val displayName: String)  : DsgvoEnum {
+enum class Datenkategorie(override val displayName: String)  : DSGVOEnum {
     BESTANDSKUNDE("Bestandskunde"),
     MITARBEITER("Mitarbeiter")
 }

@@ -5,29 +5,28 @@ import com.tschuchort.compiletesting.SourceFile
 import com.tschuchort.compiletesting.kspArgs
 import com.tschuchort.compiletesting.symbolProcessorProviders
 import org.jetbrains.kotlin.compiler.plugin.ExperimentalCompilerApi
-import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.io.File
 
 @OptIn(ExperimentalCompilerApi::class)
-class DsgvoExportProcessorTest {
+class DSGVOExportProcessorTest {
 
     @AfterEach
     fun cleanUpAfterTest() {
-        val bufferFileCsv = File("build/testbuild/build/ksp-exports/dsgvo_data.csv")
-        val bufferFileJson = File("build/testbuild/build/ksp-exports/dsgvo_data.json")
+        val bufferFileCsv = File("build/testbuild/build/ksp-exports/DSGVO_data.csv")
+        val bufferFileJson = File("build/testbuild/build/ksp-exports/DSGVO_data.json")
         if (bufferFileCsv.exists()) bufferFileCsv.delete()
         if (bufferFileJson.exists()) bufferFileJson.delete()
         println("Buffer files cleared!")
     }
 
     @Test
-    fun `test DsgvoExportProcessor generates csv and excel export`() {
+    fun `test DSGVOExportProcessor generates csv and excel export`() {
         val compilation = KotlinCompilation().apply {
             sources = listOf(source)
-            symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
+            symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
             kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "true", "project.root" to "build/testbuild")
         }
@@ -38,15 +37,15 @@ class DsgvoExportProcessorTest {
         assertEquals(true, result.messages.contains("Creating Excel export..."))
         assertEquals(true, result.messages.contains("Processor finished!"))
         assertEquals(true, result.messages.contains("round 2 of processing"))
-        assertEquals(true, result.messages.contains("No classes with DsgvoClass annotation found!"))
+        assertEquals(true, result.messages.contains("No classes with DSGVOClass annotation found!"))
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }
 
     @Test
-    fun `test DsgvoExportProcessor generates buffer files but no csv and excel export`() {
+    fun `test DSGVOExportProcessor generates buffer files but no csv and excel export`() {
         val compilation = KotlinCompilation().apply {
             sources = listOf(source)
-            symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
+            symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
             kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
         }
@@ -60,35 +59,35 @@ class DsgvoExportProcessorTest {
     }
 
     @Test
-    fun `test DsgvoExportProcessor stop running when runDSGVOProcessor is false `() {
+    fun `test DSGVOExportProcessor stop running when runDSGVOProcessor is false `() {
         val compilation = KotlinCompilation().apply {
             sources = listOf(source)
-            symbolProcessorProviders = listOf(DsgvoExportProcessorProvider())
+            symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
             inheritClassPath = true // Compiled sources have access to classes in your application
             kspArgs = mutableMapOf("runDSGVOProcessor" to "false", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
         }
         val result = compilation.compile()
 
-        assertEquals(true, result.messages.contains("runDSGVOProcessor: false, Processor wird vorzeitig ohne Durchlauf beendet!"))
+        assertEquals(true, result.messages.contains("runDSGVOProzessor: false, Prozessor wird vorzeitig ohne Durchlauf beendet!"))
         assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode)
     }
 
     companion object {
         val source = SourceFile.kotlin(
             "Person.kt", """
-            import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
+            import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
             import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
             import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
-            import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
-            import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
-            import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
+            import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
+            import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOProperty
+            import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDSGVOExport
             import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
             import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
             import de.klyk.annotationprocessorexcel.processor.annotations.SystemCluster
             import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
             import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
 
-            @DsgvoClass(
+            @DSGVOClass(
                 kategorie = [Kategorie.BESTANDSKUNDE],
                 verwendungszweck = [Verwendungszweck.LOGGING, Verwendungszweck.RECOVERY],
                 land = "DE, FR, AT",
@@ -105,9 +104,9 @@ class DsgvoExportProcessorTest {
                 val name: String,
                 val age: Int,
                 val phoneNumber: Number,
-                @DsgvoProperty([Verwendungszweck.KUNDENWERBUNG, Verwendungszweck.KUNDENBINDUNG])
+                @DSGVOProperty([Verwendungszweck.KUNDENWERBUNG, Verwendungszweck.KUNDENBINDUNG])
                 val email: String,
-                @ExcludeFromDsgvoExport
+                @ExcludeFromDSGVOExport
                 val irrelevantInfo: String,
                 val relevanteInfo: String
             )

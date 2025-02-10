@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
  * Data class to store the DSGVO information.
  */
 @Serializable
-data class DsgvoRelevantDataDto(
-    var datenKategorie: List<String> = emptyList(),
+data class DSGVORelevantDataDto(
+    var datenkategorie: List<String> = emptyList(),
     var verwendungszweck: List<String> = emptyList(),
     var beteiligteLaender: String = "",
     var solution: String = "",
