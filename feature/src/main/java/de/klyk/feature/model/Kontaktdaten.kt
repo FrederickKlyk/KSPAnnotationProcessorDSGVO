@@ -1,25 +1,25 @@
 package de.klyk.feature.model
 
-import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
+import de.klyk.annotationprocessorexcel.processor.annotations.Solution
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
 import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
-import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
+import de.klyk.annotationprocessorexcel.processor.annotations.DatenKategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
 import de.klyk.annotationprocessorexcel.processor.annotations.SystemCluster
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
-import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
+import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenger
 
 @DsgvoClass(
-    kategorie = [Kategorie.BESTANDSKUNDE],
+    datenKategorie = [DatenKategorie.BESTANDSKUNDE],
     verwendungszweck = [Verwendungszweck.LOGGING],
-    land = "DE, FR, IT",
-    domaene = Domaene.CRM,
+    beteiligteLaender = "DE; FR; NL; IT",
+    solution = Solution.CRM,
     system = SystemCluster.FRONTEND,
     personenbezogeneDaten = PersonenbezogeneDaten.JA,
-    quellen = "Kunde",
-    kategorieVonEmpfaengern = [kategorieVonEmpfaengern.KUNDEN],
-    drittland = false,
+    datenquellen = "Kunde",
+    kategorieEmpfaenger = [kategorieEmpfaenger.KUNDEN],
+    datenVerschluesselt = false,
     bemerkungen = "Erstmal keine",
     optionaleTechnischeInformationen = "Auch keine11",
 )

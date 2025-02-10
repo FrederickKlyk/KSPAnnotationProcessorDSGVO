@@ -5,15 +5,15 @@ import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSName
 import com.google.devtools.ksp.symbol.KSPropertyDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
-import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
+import de.klyk.annotationprocessorexcel.processor.annotations.DatenKategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoClass
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoProperty
 import de.klyk.annotationprocessorexcel.processor.annotations.DsgvoPropertyRelevantData
 import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDsgvoExport
-import de.klyk.annotationprocessorexcel.processor.annotations.Kategorie
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
+import de.klyk.annotationprocessorexcel.processor.annotations.Solution
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
-import de.klyk.annotationprocessorexcel.processor.annotations.kategorieVonEmpfaengern
+import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenger
 import de.klyk.annotationprocessorexcel.processor.model.DsgvoRelevantDataDto
 import de.klyk.annotationprocessorexcel.processor.model.ExcelRow
 import de.klyk.annotationprocessorexcel.processor.visitor.helper.VisitorExtractHelper.extractDisplayNameFromAnnotationArgumentEnumArray
@@ -93,20 +93,20 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         dsgvoInfoData.personenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" +
                 getAllProperties()
                     .filter { it.isExcluded().not() }
-                    .joinToString(", ") { it.simpleName.asString() } + ")"
+                    .joinToString("; ") { it.simpleName.asString() } + ")"
 
         // Add the class with its purposes to the csv data
         dsgvoInfoData.verwendungszweck.forEach { verwendungsZweck ->
-            csvData.append(classNameString).append(", ")
-                .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
+            csvData.append(dsgvoInfoData.system).append(", ")
+                .append(classNameString).append(", ")
+                .append("(${dsgvoInfoData.datenKategorie.joinToString(". ")})").append(", ")
                 .append(verwendungsZweck).append(", ")
-                .append(dsgvoInfoData.land).append(", ")
-                .append(dsgvoInfoData.domaene).append(", ")
-                .append(dsgvoInfoData.system).append(", ")
+                .append(dsgvoInfoData.beteiligteLaender).append(", ")
+                .append(dsgvoInfoData.solution).append(", ")
                 .append(dsgvoInfoData.personenbezogeneDaten).append(", ")
-                .append(dsgvoInfoData.quellen).append(", ")
-                .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
-                .append(dsgvoInfoData.drittland).append(", ")
+                .append(dsgvoInfoData.datenquellen).append(", ")
+                .append("(${dsgvoInfoData.kategorieEmpfaenger.joinToString(". ")})").append(", ")
+                .append(dsgvoInfoData.datenVerschluesselt).append(", ")
                 .append(dsgvoInfoData.bemerkungen).append(", ")
                 .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
         }
@@ -114,16 +114,16 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
         // Add the properties with their purposes to the csv data
         dsgvoPropertiesFromAnnotation.forEach { property ->
             property.verwendungszweck.forEach { verwendungsZweck ->
-                csvData.append(classNameString).append(", ")
-                    .append("(${dsgvoInfoData.kategorie.joinToString(". ")})").append(", ")
+                csvData.append(dsgvoInfoData.system).append(", ")
+                    .append(classNameString).append(", ")
+                    .append("(${dsgvoInfoData.datenKategorie.joinToString(". ")})").append(", ")
                     .append(verwendungsZweck).append(", ")
-                    .append(dsgvoInfoData.land).append(", ")
-                    .append(dsgvoInfoData.domaene).append(", ")
-                    .append(dsgvoInfoData.system).append(", ")
+                    .append(dsgvoInfoData.beteiligteLaender).append(", ")
+                    .append(dsgvoInfoData.solution).append(", ")
                     .append(property.name).append(", ")
-                    .append(dsgvoInfoData.quellen).append(", ")
-                    .append("(${dsgvoInfoData.kategorieVonEmpfaengern.joinToString(". ")})").append(", ")
-                    .append(dsgvoInfoData.drittland).append(", ")
+                    .append(dsgvoInfoData.datenquellen).append(", ")
+                    .append("(${dsgvoInfoData.kategorieEmpfaenger.joinToString(". ")})").append(", ")
+                    .append(dsgvoInfoData.datenVerschluesselt).append(", ")
                     .append(dsgvoInfoData.bemerkungen).append(", ")
                     .append(dsgvoInfoData.optionaleTechnischeInformationen).append("\n")
             }
@@ -145,15 +145,15 @@ internal class DsgvoExportVisitor(val logger: KSPLogger) : KSVisitorVoid() {
     private fun KSClassDeclaration.getDsgvoInfoData(): DsgvoRelevantDataDto {
         return annotations.find { it.shortName.asString() == DsgvoClass::class.simpleName }?.arguments?.let { args ->
             DsgvoRelevantDataDto(
-                kategorie = args.extractDisplayNameFromAnnotationArgumentEnumArray(Kategorie::class.toSimpleNameString()),
+                datenKategorie = args.extractDisplayNameFromAnnotationArgumentEnumArray(DatenKategorie::class.toSimpleNameString()),
                 verwendungszweck = args.extractStringsFromAnnotationArgumentEnumArray(Verwendungszweck::class.toSimpleNameString()),
-                land = args.extractStringsFromAnnotationArgumentString(DsgvoClass::land.name) ?: "",
-                domaene = args.extractStringsFromAnnotationArgumentEnum(Domaene::class.toSimpleNameString()),
+                beteiligteLaender = args.extractStringsFromAnnotationArgumentString(DsgvoClass::beteiligteLaender.name) ?: "",
+                solution = args.extractStringsFromAnnotationArgumentEnum(Solution::class.toSimpleNameString()),
                 system = args.extractStringsFromAnnotationArgumentEnum(System::class.toSimpleNameString()),
                 personenbezogeneDaten = args.extractStringsFromAnnotationArgumentEnum(PersonenbezogeneDaten::class.toSimpleNameString()),
-                quellen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::quellen.name) ?: "",
-                kategorieVonEmpfaengern = args.extractStringsFromAnnotationArgumentEnumArray(kategorieVonEmpfaengern::class.toSimpleNameString()),
-                drittland = args.extractStringsFromAnnotationArgumentBoolean(DsgvoClass::drittland.name) ?: false,
+                datenquellen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::datenquellen.name) ?: "",
+                kategorieEmpfaenger = args.extractStringsFromAnnotationArgumentEnumArray(kategorieEmpfaenger::class.toSimpleNameString()),
+                datenVerschluesselt = args.extractStringsFromAnnotationArgumentBoolean(DsgvoClass::datenVerschluesselt.name) ?: false,
                 bemerkungen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::bemerkungen.name) ?: "",
                 optionaleTechnischeInformationen = args.extractStringsFromAnnotationArgumentString(DsgvoClass::optionaleTechnischeInformationen.name)
                     ?: ""

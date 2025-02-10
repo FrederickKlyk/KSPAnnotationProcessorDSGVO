@@ -123,16 +123,16 @@ internal class DsgvoExportProcessor(
         // Create header row
         val headerRow = sheet.createRow(rowIndex++)
         val headers = listOf(
-            AnnotationConstants.DATENKLASSE_NAME,
-            AnnotationConstants.KATEGORIE,
-            AnnotationConstants.VERWENDUNGSZWECK,
-            AnnotationConstants.LAND,
-            AnnotationConstants.DOMAENE,
             AnnotationConstants.SYSTEM,
+            AnnotationConstants.DATENKLASSE_NAME,
+            AnnotationConstants.DATEN_KATEGORIE,
+            AnnotationConstants.VERWENDUNGSZWECK,
+            AnnotationConstants.BETEILIGTE_LAENDER,
+            AnnotationConstants.SOLUTION,
             AnnotationConstants.PERSONENBEZOGENE_DATEN,
-            AnnotationConstants.QUELLEN,
+            AnnotationConstants.DATENQUELLEN,
             AnnotationConstants.KATEGORIE_VON_EMPFAENGERN,
-            AnnotationConstants.DRITTLAND,
+            AnnotationConstants.DATEN_VERSCHLUESSELT,
             AnnotationConstants.BEMERKUNGEN,
             AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN
         )
@@ -154,16 +154,16 @@ internal class DsgvoExportProcessor(
                 var cellCount = 0
                 val dataRow = sheet.createRow(rowIndex++)
                 dataRow.apply {
-                    createCell(cellCount++).setCellValue(className)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorie.separatorKommaForExport())
-                    createCell(cellCount++).setCellValue(verwendungszweck)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.land)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.domaene)
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
+                    createCell(cellCount++).setCellValue(className)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenKategorie.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(verwendungszweck)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.beteiligteLaender)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.solution)
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.personenbezogeneDaten)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.quellen)
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKommaForExport())
-                    createCell(cellCount++).setCellValue(dsgvoRelevantData.drittland.toString())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenquellen)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieEmpfaenger.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenVerschluesselt.toString())
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
                     createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
                 }
@@ -171,21 +171,21 @@ internal class DsgvoExportProcessor(
 
             // Handle DsgvoProperty verwendungszweck
             row.dsgvoPropertyRelevantData.getPropertyNamesByVerwendungszweck().forEach { mapEntry ->
-                    var cellCount = 0
-                    val dataRow = sheet.createRow(rowIndex++)
-                    dataRow.apply {
-                        createCell(cellCount++).setCellValue(className)
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorie.separatorKommaForExport())
-                        createCell(cellCount++).setCellValue(mapEntry.key)
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.land)
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.domaene)
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
-                        createCell(cellCount++).setCellValue(mapEntry.value.prettifyDataForExcelExport().separatorKommaForExport())
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.quellen)
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieVonEmpfaengern.separatorKommaForExport())
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.drittland.toString())
-                        createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
-                        createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
+                var cellCount = 0
+                val dataRow = sheet.createRow(rowIndex++)
+                dataRow.apply {
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.system)
+                    createCell(cellCount++).setCellValue(className)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenKategorie.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(mapEntry.key)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.beteiligteLaender)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.solution)
+                    createCell(cellCount++).setCellValue(mapEntry.value.prettifyDataForExcelExport().separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenquellen)
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.kategorieEmpfaenger.separatorKommaForExport())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.datenVerschluesselt.toString())
+                    createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
+                    createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
 
                 }
             }
@@ -195,7 +195,7 @@ internal class DsgvoExportProcessor(
         (0..11).forEach { sheet.autoSizeColumn(it) }
     }
 
-    private fun List<String>.prettifyDataForExcelExport() = map{
+    private fun List<String>.prettifyDataForExcelExport() = map {
         it.removePrefix("_").replace('_', ' ')
     }.distinct()
 
