@@ -12,16 +12,16 @@ import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenge
 
 @DSGVOClass(
     datenkategorie = [Datenkategorie.BESTANDSKUNDE],
-    verwendungszweck = [Verwendungszweck.LOGGING, Verwendungszweck.RECOVERY],
+    verwendungszweck = [Verwendungszweck.LOGGING, Verwendungszweck.RECOVERY, Verwendungszweck.KUNDENVERWALTUNG],
     beteiligteLaender = "DE; FR; NL; IT",
     solution = Solution.CRM,
     system = SystemCluster.FRONTEND,
     personenbezogeneDaten = PersonenbezogeneDaten.JA,
-    datenquellen = "partiendo",
-    kategorieEmpfaenger = [kategorieEmpfaenger.KUNDEN],
+    datenquellen = "CRM; Kunde",
+    kategorieEmpfaenger = [kategorieEmpfaenger.KUNDEN, kategorieEmpfaenger.MITARBEITER],
     datenVerschluesselt = false,
-    bemerkungen = "laoreet",
-    optionaleTechnischeInformationen = "keine",
+    bemerkungen = "Keine",
+    optionaleTechnischeInformationen = "Verschlüsselung ab 2026",
 )
 data class Person(
     val name: String,

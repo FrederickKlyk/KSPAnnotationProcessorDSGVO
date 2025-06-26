@@ -10,17 +10,17 @@ import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenger
 
 @DSGVOClass(
-    datenkategorie = [Datenkategorie.MITARBEITER, Datenkategorie.BESTANDSKUNDE],
-    verwendungszweck = [Verwendungszweck.KUNDENBINDUNG, Verwendungszweck.LOGGING],
-    solution = Solution.FINANZEN,
+    datenkategorie = [Datenkategorie.MITARBEITER],
+    verwendungszweck = [Verwendungszweck.RECOVERY, Verwendungszweck.LOGGING],
+    solution = Solution.HR,
     system = SystemCluster.FRONTEND,
     personenbezogeneDaten = PersonenbezogeneDaten.JA,
-    datenquellen = "risus",
-    kategorieEmpfaenger = [kategorieEmpfaenger.MITARBEITER],
+    datenquellen = "HR",
+    kategorieEmpfaenger = [kategorieEmpfaenger.MITARBEITER, kategorieEmpfaenger.DIENSTLEISTER],
     datenVerschluesselt = false,
-    beteiligteLaender = "DE; FR",
-    bemerkungen = "leo",
-    optionaleTechnischeInformationen = "iaculis",
+    beteiligteLaender = "DE, AT",
+    bemerkungen = "Ab 2026 weitere Länder",
+    optionaleTechnischeInformationen = "Verschlüsselung ab 2026",
 
 )
 data class Employee(
