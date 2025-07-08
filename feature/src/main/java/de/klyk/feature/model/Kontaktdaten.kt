@@ -36,9 +36,3 @@ data class Kontaktdaten(
     val irrelevantInfo2: String,
     val relevanteInfo: String
 )
-
-
-
-fun test(){
-    Kontaktdaten()
-}

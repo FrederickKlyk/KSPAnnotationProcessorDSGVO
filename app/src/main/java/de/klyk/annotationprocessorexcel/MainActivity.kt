@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
             AnnotationProcessorExcelTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     Greeting(
-                        name = "Android",
+                        name = "KSP",
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -33,7 +33,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun Greeting(name: String, modifier: Modifier = Modifier) {
     Text(
-        text = "Hello $name!",
+        text = "Hello $name!\nDie Magie findet vor der Laufzeit zur Kompilieungszeit statt.",
         modifier = modifier
     )
 }
