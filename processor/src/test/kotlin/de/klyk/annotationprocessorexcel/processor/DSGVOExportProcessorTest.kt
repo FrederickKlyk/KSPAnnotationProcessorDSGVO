@@ -12,7 +12,6 @@ import java.io.File
 
 @OptIn(ExperimentalCompilerApi::class)
 class DSGVOExportProcessorTest {
-
     @AfterEach
     fun cleanUpAfterTest() {
         val bufferFileCsv = File("build/testbuild/build/ksp-exports/DSGVO_data.csv")
@@ -24,12 +23,13 @@ class DSGVOExportProcessorTest {
 
     @Test
     fun `test DSGVOExportProcessor generates csv and excel export`() {
-        val compilation = KotlinCompilation().apply {
-            sources = listOf(source)
-            symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
-            inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "true", "project.root" to "build/testbuild")
-        }
+        val compilation =
+            KotlinCompilation().apply {
+                sources = listOf(source)
+                symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
+                inheritClassPath = true // Compiled sources have access to classes in your application
+                kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "true", "project.root" to "build/testbuild")
+            }
         val result = compilation.compile()
 
         assertEquals(true, result.messages.contains("Processor started!!"))
@@ -43,12 +43,13 @@ class DSGVOExportProcessorTest {
 
     @Test
     fun `test DSGVOExportProcessor generates buffer files but no csv and excel export`() {
-        val compilation = KotlinCompilation().apply {
-            sources = listOf(source)
-            symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
-            inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
-        }
+        val compilation =
+            KotlinCompilation().apply {
+                sources = listOf(source)
+                symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
+                inheritClassPath = true // Compiled sources have access to classes in your application
+                kspArgs = mutableMapOf("runDSGVOProcessor" to "true", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
+            }
         val result = compilation.compile()
 
         assertEquals(true, result.messages.contains("Processor started!!"))
@@ -60,12 +61,13 @@ class DSGVOExportProcessorTest {
 
     @Test
     fun `test DSGVOExportProcessor stop running when runDSGVOProcessor is false `() {
-        val compilation = KotlinCompilation().apply {
-            sources = listOf(source)
-            symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
-            inheritClassPath = true // Compiled sources have access to classes in your application
-            kspArgs = mutableMapOf("runDSGVOProcessor" to "false", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
-        }
+        val compilation =
+            KotlinCompilation().apply {
+                sources = listOf(source)
+                symbolProcessorProviders = listOf(DSGVOExportProcessorProvider())
+                inheritClassPath = true // Compiled sources have access to classes in your application
+                kspArgs = mutableMapOf("runDSGVOProcessor" to "false", "exportDSGVOExcel" to "false", "project.root" to "build/testbuild")
+            }
         val result = compilation.compile()
 
         assertEquals(true, result.messages.contains("runDSGVOProzessor: false, Prozessor wird vorzeitig ohne Durchlauf beendet!"))
@@ -73,8 +75,10 @@ class DSGVOExportProcessorTest {
     }
 
     companion object {
-        val source = SourceFile.kotlin(
-            "Person.kt", """
+        val source =
+            SourceFile.kotlin(
+                "Person.kt",
+                """
             import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
             import de.klyk.annotationprocessorexcel.processor.annotations.AnnotationConstants
             import de.klyk.annotationprocessorexcel.processor.annotations.Domaene
@@ -110,7 +114,7 @@ class DSGVOExportProcessorTest {
                 val irrelevantInfo: String,
                 val relevanteInfo: String
             )
-        """
-        )
+        """,
+            )
     }
 }

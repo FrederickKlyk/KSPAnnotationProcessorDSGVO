@@ -29,9 +29,8 @@ import kotlin.reflect.KClass
 internal class DSGVOExportProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger,
-    options: Map<String, String>
+    options: Map<String, String>,
 ) : SymbolProcessor {
-
     private val exportExcel: Boolean = options["exportDSGVOExcel"]?.toBoolean() ?: false
     private val bufferFilePath = "${options["project.root"]}/build/ksp-exports"
     private val pathDSGVODataStore = DSGVODataStore(bufferFilePath, logger)
@@ -60,10 +59,12 @@ internal class DSGVOExportProcessor(
          * Für jedes Symbol wird die zugehörige Quelldatei ermittelt und in einer Liste gespeichert.
          * Wird für die Dependencies in der CodeGenerator.createNewFile-Methode benötigt (inkrementelle Kompilierungsstrategie).
          */
-        val sourceFiles = symbolsDsgvo.mapNotNull {
-            logger.warn("Source file: ${it.simpleName.asString()}: ${it.containingFile}")
-            it.containingFile
-        }.toList()
+        val sourceFiles =
+            symbolsDsgvo
+                .mapNotNull {
+                    logger.warn("Source file: ${it.simpleName.asString()}: ${it.containingFile}")
+                    it.containingFile
+                }.toList()
 
         pathDSGVODataStore.appendCsvData(visitor.getCsvData())
         pathDSGVODataStore.appendExcelData(visitor.getExcelData())
@@ -95,15 +96,19 @@ internal class DSGVOExportProcessor(
     /**
      * Bereite den Excelreport inklusive Styling vor und führe final den Excelexport durch.
      */
-    private fun createExcelExport(excelData: List<ExcelRow>, sourceFiles: List<KSFile>) {
+    private fun createExcelExport(
+        excelData: List<ExcelRow>,
+        sourceFiles: List<KSFile>,
+    ) {
         logger.warn("Creating Excel export...")
         // Create Excel workbook and sheet
         val workbook: Workbook = XSSFWorkbook()
         val sheet = workbook.createSheet("FrontendDsgvoReport")
-        val cellStyle = workbook.createCellStyle().apply {
-            setFillForegroundColor(XSSFColor(Color(173, 216, 230), null))
-            fillPattern = FillPatternType.SOLID_FOREGROUND
-        }
+        val cellStyle =
+            workbook.createCellStyle().apply {
+                setFillForegroundColor(XSSFColor(Color(173, 216, 230), null))
+                fillPattern = FillPatternType.SOLID_FOREGROUND
+            }
 
         extractDsgvoData(excelData, sheet, cellStyle)
         writeExcelExport(workbook, sourceFiles)
@@ -115,26 +120,27 @@ internal class DSGVOExportProcessor(
     private fun extractDsgvoData(
         excelData: List<ExcelRow>,
         sheet: Sheet,
-        cellStyle: CellStyle
+        cellStyle: CellStyle,
     ) {
         var rowIndex = 0
 
         // Create header row
         val headerRow = sheet.createRow(rowIndex++)
-        val headers = listOf(
-            AnnotationConstants.SYSTEM,
-            AnnotationConstants.DATENKLASSE_NAME,
-            AnnotationConstants.DATENKATEGORIE,
-            AnnotationConstants.VERWENDUNGSZWECK,
-            AnnotationConstants.BETEILIGTE_LAENDER,
-            AnnotationConstants.SOLUTION,
-            AnnotationConstants.PERSONENBEZOGENE_DATEN,
-            AnnotationConstants.DATENQUELLEN,
-            AnnotationConstants.KATEGORIE_VON_EMPFAENGERN,
-            AnnotationConstants.DATEN_VERSCHLUESSELT,
-            AnnotationConstants.BEMERKUNGEN,
-            AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN
-        )
+        val headers =
+            listOf(
+                AnnotationConstants.SYSTEM,
+                AnnotationConstants.DATENKLASSE_NAME,
+                AnnotationConstants.DATENKATEGORIE,
+                AnnotationConstants.VERWENDUNGSZWECK,
+                AnnotationConstants.BETEILIGTE_LAENDER,
+                AnnotationConstants.SOLUTION,
+                AnnotationConstants.PERSONENBEZOGENE_DATEN,
+                AnnotationConstants.DATENQUELLEN,
+                AnnotationConstants.KATEGORIE_VON_EMPFAENGERN,
+                AnnotationConstants.DATEN_VERSCHLUESSELT,
+                AnnotationConstants.BEMERKUNGEN,
+                AnnotationConstants.OPTIONALE_TECHNISCHE_INFORMATIONEN,
+            )
 
         headers.forEachIndexed { index, header ->
             headerRow.createCell(index).apply {
@@ -185,7 +191,6 @@ internal class DSGVOExportProcessor(
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.datenVerschluesselt.toString())
                     createCell(cellCount++).setCellValue(dsgvoRelevantData.bemerkungen)
                     createCell(cellCount).setCellValue(dsgvoRelevantData.optionaleTechnischeInformationen)
-
                 }
             }
         }
@@ -194,17 +199,19 @@ internal class DSGVOExportProcessor(
         (0..11).forEach { sheet.autoSizeColumn(it) }
     }
 
-    private fun List<String>.prettifyDataForExcelExport() = map {
-        it.removePrefix("_").replace('_', ' ')
-    }.distinct()
+    private fun List<String>.prettifyDataForExcelExport() =
+        map {
+            it.removePrefix("_").replace('_', ' ')
+        }.distinct()
 
     /**
      * Returns a map with the Verwendungszweck as key and a list of property names with the same Verwendungszweck as value.
      */
     private fun List<DSGVOPropertyRelevantData>.getPropertyNamesByVerwendungszweck(): Map<String, List<String>> {
-        val t = this.getVerwendungszwecke().map {
-            it to this.getNamesWithSameVerwendungszweck(it)
-        }
+        val t =
+            this.getVerwendungszwecke().map {
+                it to this.getNamesWithSameVerwendungszweck(it)
+            }
         return t.toMap()
     }
 
@@ -212,34 +219,35 @@ internal class DSGVOExportProcessor(
      * @param List of DsgvoRelevantPropertyDataDto
      * @return List of Verwendungszwecke
      */
-    private fun List<DSGVOPropertyRelevantData>.getVerwendungszwecke(): List<String> {
-        return this.flatMap { it.verwendungszweck }.distinct()
-    }
+    private fun List<DSGVOPropertyRelevantData>.getVerwendungszwecke(): List<String> = this.flatMap { it.verwendungszweck }.distinct()
 
     /**
      *
      * @param List of DsgvoRelevantPropertyDataDto
      * @return List an Strings (Property Names mit dem gleichen Verwendungszweck)
      */
-    private fun List<DSGVOPropertyRelevantData>.getNamesWithSameVerwendungszweck(verwendungszweck: String): List<String> {
-        return this.filter { it.verwendungszweck.contains(verwendungszweck) }.map { it.displayName.ifEmpty { it.name } }
-    }
+    private fun List<DSGVOPropertyRelevantData>.getNamesWithSameVerwendungszweck(verwendungszweck: String): List<String> =
+        this.filter { it.verwendungszweck.contains(verwendungszweck) }.map { it.displayName.ifEmpty { it.name } }
 
     /**
      * Schreibe den Excel-Export.
      */
-    private fun writeExcelExport(workbook: Workbook, sourceFiles: List<KSFile>) {
+    private fun writeExcelExport(
+        workbook: Workbook,
+        sourceFiles: List<KSFile>,
+    ) {
         try {
             logger.warn("Writing to Excel file...")
-            val file = codeGenerator.createNewFile(
-                Dependencies(
-                    false,
-                    *sourceFiles.toTypedArray()
-                ),
-                "de.klyk.annotationprocessorexcel.generated",
-                AnnotationConstants.DSGVO_FILE_NAME,
-                "xlsx"
-            )
+            val file =
+                codeGenerator.createNewFile(
+                    Dependencies(
+                        false,
+                        *sourceFiles.toTypedArray(),
+                    ),
+                    "de.klyk.annotationprocessorexcel.generated",
+                    AnnotationConstants.DSGVO_FILE_NAME,
+                    "xlsx",
+                )
 
             file.use { workbook.write(it) }
         } catch (e: IOException) {
@@ -251,7 +259,10 @@ internal class DSGVOExportProcessor(
     /**
      * Schreibe die CSV-Datei.
      */
-    private fun writeCsvExport(csvData: String, sourceFiles: List<KSFile>) {
+    private fun writeCsvExport(
+        csvData: String,
+        sourceFiles: List<KSFile>,
+    ) {
         try {
             logger.warn("Writing to CSV file...")
             /**
@@ -264,19 +275,20 @@ internal class DSGVOExportProcessor(
              *
              * sources: Eine Liste von KSFile, die die Abhängigkeiten definiert. Änderungen an diesen Dateien werden den inkrementellen Build auslösen.
              */
-            codeGenerator.createNewFile(
-                Dependencies(
-                    false,
-                    *sourceFiles.toTypedArray()
-                ),
-                "de.klyk.annotationprocessorexcel.generated",
-                AnnotationConstants.DSGVO_FILE_NAME,
-                "csv"
-            ).apply {
-                bufferedWriter(Charsets.UTF_8).use { file ->
-                    file.write(csvData)
+            codeGenerator
+                .createNewFile(
+                    Dependencies(
+                        false,
+                        *sourceFiles.toTypedArray(),
+                    ),
+                    "de.klyk.annotationprocessorexcel.generated",
+                    AnnotationConstants.DSGVO_FILE_NAME,
+                    "csv",
+                ).apply {
+                    bufferedWriter(Charsets.UTF_8).use { file ->
+                        file.write(csvData)
+                    }
                 }
-            }
         } catch (e: IOException) {
             logger.warn("Error writing to CSV file: ${e.message}")
             e.printStackTrace()

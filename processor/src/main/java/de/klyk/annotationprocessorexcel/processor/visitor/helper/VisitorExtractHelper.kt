@@ -31,12 +31,13 @@ internal object VisitorExtractHelper {
                 val enumArrayAsAny = Class.forName(enumAsAny.toString().substringBeforeLast(".")).enumConstants
                 val enumArray = enumArrayAsAny as? Array<out Enum<*>>
 
-                enumArray?.find {
-                    it.name == enumAsAny.toString().substringAfterLast(".")
-                }?.let {
-                    val enumDisplayName = (it as DSGVOEnum).displayName.ifEmpty { "/" }
-                    return@map enumDisplayName
-                }
+                enumArray
+                    ?.find {
+                        it.name == enumAsAny.toString().substringAfterLast(".")
+                    }?.let {
+                        val enumDisplayName = (it as DSGVOEnum).displayName.ifEmpty { "/" }
+                        return@map enumDisplayName
+                    }
                 enumAsAny.toString().substringAfterLast('.')
             } catch (e: Exception) {
                 enumAsAny.toString().substringAfterLast('.')
@@ -45,7 +46,5 @@ internal object VisitorExtractHelper {
 
     fun KClass<*>.toSimpleNameString() = simpleName ?: ""
 
-    fun List<String>.separatorKommaForExport(): String {
-        return this.joinToString(", ").trim { it <= ' ' || it == ',' }
-    }
+    fun List<String>.separatorKommaForExport(): String = this.joinToString(", ").trim { it <= ' ' || it == ',' }
 }

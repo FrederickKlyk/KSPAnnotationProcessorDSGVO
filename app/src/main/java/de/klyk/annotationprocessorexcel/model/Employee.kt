@@ -1,10 +1,10 @@
 package de.klyk.annotationprocessorexcel.model
 
-import de.klyk.annotationprocessorexcel.processor.annotations.Solution
 import de.klyk.annotationprocessorexcel.processor.annotations.DSGVOClass
-import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDSGVOExport
 import de.klyk.annotationprocessorexcel.processor.annotations.Datenkategorie
+import de.klyk.annotationprocessorexcel.processor.annotations.ExcludeFromDSGVOExport
 import de.klyk.annotationprocessorexcel.processor.annotations.PersonenbezogeneDaten
+import de.klyk.annotationprocessorexcel.processor.annotations.Solution
 import de.klyk.annotationprocessorexcel.processor.annotations.SystemCluster
 import de.klyk.annotationprocessorexcel.processor.annotations.Verwendungszweck
 import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenger
@@ -21,7 +21,6 @@ import de.klyk.annotationprocessorexcel.processor.annotations.kategorieEmpfaenge
     beteiligteLaender = "DE, AT",
     bemerkungen = "Ab 2026 weitere Länder",
     optionaleTechnischeInformationen = "Verschlüsselung ab 2026",
-
 )
 data class Employee(
     val name: String,

@@ -4,9 +4,8 @@ plugins {
 }
 
 dependencies {
-    //KSP
+    // KSP
     implementation(libs.symbol.processing.api)
-
 
     // Excel Export
     implementation(libs.poi.ooxml)
