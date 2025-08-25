@@ -37,18 +37,20 @@ internal class DSGVOExportVisitor(
     private val csvData = StringBuilder()
     private val excelData = mutableListOf<ExcelRow>()
 
-    // Visit all classes and delegate first properties processing and then class processing
+    /**
+     * Besuche jede Klassendeklaration und delegiere zuerst die Verarbeitung der Properties und dann die Verarbeitung der Klasse
+     */
     override fun visitClassDeclaration(
         classDeclaration: KSClassDeclaration,
         data: Unit,
     ) {
         logger.warn("Processing class in visitClassDeclaration: ${classDeclaration.simpleName.asString()}")
-        // First process all properties of the class
+        // Zunächst alle Properties der Klasse verarbeiten
         classDeclaration.getAllProperties().forEach { propertyDeclaration ->
             propertyDeclaration.accept(this, Unit)
         }
 
-        // Then process the class for export
+        // Anschließend die Klasse für den Export verarbeiten
         classDeclaration.annotations.find { it.shortName.asString() == DSGVOClass::class.simpleName }?.let {
             classDeclaration.processDSGVODataExport()
         }

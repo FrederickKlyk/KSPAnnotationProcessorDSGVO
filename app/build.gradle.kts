@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "de.klyk.annotationprocessorexcel"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "de.klyk.annotationprocessorexcel"

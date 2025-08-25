@@ -41,30 +41,32 @@ internal class DSGVOExportProcessor(
             logger.warn("runDSGVOProzessor: $runDSGVOProcessor, Prozessor wird vorzeitig ohne Durchlauf beendet!")
             return emptyList()
         }
-        logger.warn("Processor started!!")
+        logger.warn("Processor started!")
         logger.warn("Excel Buffer File Path: $bufferFilePath")
 
-        val symbolsDsgvo = resolver.findAnnotations(DSGVOClass::class)
-        if (symbolsDsgvo.none()) {
+        val symbolsDSGVO = resolver.findAnnotations(DSGVOClass::class)
+        if (symbolsDSGVO.none()) {
             logger.warn("No classes with DSGVOClass annotation found!")
             return emptyList()
         }
 
-        // Visit all classes and delegate in first step visit properties
+        /**
+         * Erstelle einen Visitor, der die gefundenen Symbole (Klassen mit der DSGVOClass-Annotation)
+         * besucht und die relevanten Daten extrahiert.
+         */
         val visitor = DSGVOExportVisitor(logger)
-        symbolsDsgvo.forEach { classDeclaration ->
+        symbolsDSGVO.forEach { classDeclaration ->
             classDeclaration.accept(visitor, Unit)
         }
         /**
          * Für jedes Symbol wird die zugehörige Quelldatei ermittelt und in einer Liste gespeichert.
          * Wird für die Dependencies in der CodeGenerator.createNewFile-Methode benötigt (inkrementelle Kompilierungsstrategie).
          */
-        val sourceFiles =
-            symbolsDsgvo
-                .mapNotNull {
-                    logger.warn("Source file: ${it.simpleName.asString()}: ${it.containingFile}")
-                    it.containingFile
-                }.toList()
+        val sourceFiles = symbolsDSGVO
+            .mapNotNull {
+                logger.warn("Source file: ${it.simpleName.asString()}: ${it.containingFile}")
+                it.containingFile
+            }.toList()
 
         pathDSGVODataStore.appendCsvData(visitor.getCsvData())
         pathDSGVODataStore.appendExcelData(visitor.getExcelData())
@@ -84,14 +86,15 @@ internal class DSGVOExportProcessor(
          * Falscher Typ: Das Symbol ist nicht der erwartete Typ (z.B. eine Klasse statt einer Methode).
          * Fehlende Abhängigkeiten: Das Symbol hängt von anderen Symbolen ab, die nicht vorhanden oder nicht korrekt sind.
          */
-        return symbolsDsgvo.filterNot { it.validate() }.toList()
+        return symbolsDSGVO.filterNot { it.validate() }.toList()
     }
 
     /**
-     * Finde alle Symbole mit der angegebenen Klassen-Nnnotation.
+     * Finde alle Symbole mit der angegebenen Klassen-Annotation.
      */
     private fun Resolver.findAnnotations(kClass: KClass<*>) =
-        getSymbolsWithAnnotation(kClass.qualifiedName.toString()).filterIsInstance<KSClassDeclaration>()
+        getSymbolsWithAnnotation(kClass.qualifiedName.toString())
+            .filterIsInstance<KSClassDeclaration>()
 
     /**
      * Bereite den Excelreport inklusive Styling vor und führe final den Excelexport durch.
@@ -110,14 +113,14 @@ internal class DSGVOExportProcessor(
                 fillPattern = FillPatternType.SOLID_FOREGROUND
             }
 
-        extractDsgvoData(excelData, sheet, cellStyle)
+        extractDSGVOData(excelData, sheet, cellStyle)
         writeExcelExport(workbook, sourceFiles)
     }
 
     /**
      * Extrahiere die DSGVO-Daten aus den Excel-Rohdaten und schreibe sie in die Excel-Exportdatei.
      */
-    private fun extractDsgvoData(
+    private fun extractDSGVOData(
         excelData: List<ExcelRow>,
         sheet: Sheet,
         cellStyle: CellStyle,
