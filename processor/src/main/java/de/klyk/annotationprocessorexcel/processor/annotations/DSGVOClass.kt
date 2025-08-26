@@ -1,18 +1,19 @@
 package de.klyk.annotationprocessorexcel.processor.annotations
 
 /**
- * Annotation to mark a class as DSGVO relevant.
- * @param solution which solution is leading / responsible for the data.
- * @param system which system (i.e. Frontend, Backend) is currently working with the data.
- * @param datenkategorie The category of the data.
- * @param personenbezogeneDaten The explicit personal data attributes.
- * @param verwendungszweck The purpose of the data processing.
- * @param datenquellen The source of the data.
- * @param kategorieEmpfaenger The category of recipients.
- * @param datenVerschluesselt Whether the data is encrypted. Type of encryption can be added as a technical comment.
- * @param beteiligteLaender The countries involved in the data processing.
- * @param bemerkungen Additional comments.
- * @param optionaleTechnischeInformationen Optional technical information, i.e. encryption type.
+ *  Annotation, um eine Klasse als DSGVO-relevant zu kennzeichnen.
+ *  @param solution Welche Lösung für die Daten führend / verantwortlich ist.
+ *  @param system Welches System (z.B. Frontend, Backend) aktuell mit den Daten arbeitet.
+ *  @param datenkategorie Die Kategorie der Daten.
+ *  @param personenbezogeneDaten Die expliziten personenbezogenen Datenattribute.
+ *  @param verwendungszweck Der Zweck der Datenverarbeitung.
+ *  @param datenquellen Die Quelle der Daten.
+ *  @param kategorieEmpfaenger Die Kategorie der Empfänger.
+ *  @param datenVerschluesselt Ob die Daten verschlüsselt sind.
+ *         Die Art der Verschlüsselung kann als technischer Kommentar ergänzt werden.
+ *  @param beteiligteLaender Die an der Datenverarbeitung beteiligten Länder.
+ *  @param bemerkungen Zusätzliche Anmerkungen.
+ *  @param optionaleTechnischeInformationen Optionale technische Informationen, z.B. Verschlüsselungsart.
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
@@ -27,7 +28,7 @@ annotation class DSGVOClass(
     val datenVerschluesselt: Boolean,
     val beteiligteLaender: String,
     val bemerkungen: String = "",
-    val optionaleTechnischeInformationen: String = ""
+    val optionaleTechnischeInformationen: String = "",
 )
 
 enum class kategorieEmpfaenger {
@@ -55,7 +56,7 @@ enum class Solution {
     HR
 }
 
-enum class Datenkategorie(override val displayName: String)  : DSGVOEnum {
+enum class Datenkategorie(override val displayName: String) : DSGVOEnum {
     BESTANDSKUNDE("Bestandskunde"),
     MITARBEITER("Mitarbeiter")
 }
@@ -69,4 +70,3 @@ enum class Verwendungszweck {
     MARKETING,
     VERTRAGSABWICKLUNG
 }
-

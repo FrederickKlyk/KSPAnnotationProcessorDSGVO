@@ -100,7 +100,7 @@ internal class DSGVOExportVisitor(
         val className = simpleName
         val classNameString = simpleName.asString()
         val dsgvoPropertiesFromAnnotation = purposesMap[className] ?: emptyList()
-        val dsgvoInfoData = getDsgvoInfoData()
+        val dsgvoInfoData = getDSGVOInfoData()
 
         // Add the class properties to the personenbezogeneDaten
         dsgvoInfoData.personenbezogeneDaten = dsgvoInfoData.personenbezogeneDaten + " (" +
@@ -178,9 +178,9 @@ internal class DSGVOExportVisitor(
         }
 
     /**
-     * Extract the DsgvoClass annotation data from the class declaration
+     * Extract the DSGVOClass annotation data from the class declaration
      */
-    private fun KSClassDeclaration.getDsgvoInfoData(): DSGVORelevantDataDto =
+    private fun KSClassDeclaration.getDSGVOInfoData(): DSGVORelevantDataDto =
         annotations.find { it.shortName.asString() == DSGVOClass::class.simpleName }?.arguments?.let { args ->
             DSGVORelevantDataDto(
                 datenkategorie = args.extractDisplayNameFromAnnotationArgumentEnumArray(Datenkategorie::class.toSimpleNameString()),

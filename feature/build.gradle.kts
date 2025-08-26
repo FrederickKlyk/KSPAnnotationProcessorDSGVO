@@ -8,7 +8,7 @@ plugins {
 
 android {
     namespace = "de.klyk.feature"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         minSdk = 30
