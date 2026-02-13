@@ -42,18 +42,18 @@ android {
     android.sourceSets.named("release") {
         kotlin.directories += "build/generated/ksp/release/kotlin"
     }
+}
 
-    kotlin {
-        compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_21)
-        }
+kotlin {
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_21)
     }
-    // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDSGVOProcessor=true
-    ksp {
-        arg("runDSGVOProcessor", providers.gradleProperty("runDSGVOProcessor").orElse("true"))
-        arg("exportDSGVOExcel", "true")
-        arg("project.root", projectDir.parent.toString())
-    }
+}
+// KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDSGVOProcessor=true
+ksp {
+    arg("runDSGVOProcessor", providers.gradleProperty("runDSGVOProcessor").orElse("true"))
+    arg("exportDSGVOExcel", "true")
+    arg("project.root", projectDir.parent.toString())
 }
 
 dependencies {
