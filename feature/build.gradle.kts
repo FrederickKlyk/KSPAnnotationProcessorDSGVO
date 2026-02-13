@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.ksp)
 }
 
@@ -14,8 +13,8 @@ android {
         minSdk = 30
     }
 
-    testOptions.targetSdk = 35
-    lint.targetSdk = 35
+    testOptions.targetSdk = 36
+    lint.targetSdk = 36
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
@@ -25,15 +24,15 @@ android {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
         }
-        sourceSets {
-            getByName("debug") {
-                kotlin.srcDirs("build/generated/ksp/debug/kotlin")
-            }
-            getByName("release") {
-                kotlin.srcDirs("build/generated/ksp/release/kotlin")
-            }
-        }
     }
+    android.sourceSets.named("debug") {
+        kotlin.directories += "build/generated/ksp/debug/kotlin"
+    }
+
+    android.sourceSets.named("release") {
+        kotlin.directories += "build/generated/ksp/release/kotlin"
+    }
+
     ksp {
         arg("runDSGVOProcessor", providers.gradleProperty("runDSGVOProcessor").orElse("true"))
         arg("project.root", projectDir.parent.toString())

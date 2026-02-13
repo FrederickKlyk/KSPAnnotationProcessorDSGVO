@@ -2,7 +2,6 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.kotlin.ksp)
 }
@@ -20,7 +19,7 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
-    lint.targetSdk = 35
+    lint.targetSdk = 36
 
     buildTypes {
         release {
@@ -35,17 +34,18 @@ android {
     buildFeatures {
         compose = true
     }
+
+    android.sourceSets.named("debug") {
+        kotlin.directories += "build/generated/ksp/debug/kotlin"
+    }
+
+    android.sourceSets.named("release") {
+        kotlin.directories += "build/generated/ksp/release/kotlin"
+    }
+
     kotlin {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_21)
-        }
-        sourceSets {
-            getByName("debug") {
-                kotlin.srcDirs("build/generated/ksp/debug/kotlin")
-            }
-            getByName("release") {
-                kotlin.srcDirs("build/generated/ksp/release/kotlin")
-            }
         }
     }
     // KSP Parameter, ob der Prozessor ausgeführt werden soll: ./gradlew build -PrunDSGVOProcessor=true
